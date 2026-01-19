@@ -1,13 +1,12 @@
-import 'package:akiba/features/services/currency_service.dart';
+import 'package:akiba/features/create%20account/widgets/country_list.dart';
+import 'package:akiba/features/create%20account/widgets/search_field.dart';
 import 'package:akiba/models/currency.dart';
 import 'package:flutter/material.dart';
 
+
 class CountryPickerView extends StatefulWidget {
   final ValueChanged<Currency> onSelect;
-  final bool showFlag;
-  final bool showCurrencyName;
-  final bool showCurrencyCode;
-  final bool showSearchField;
+
   final String? searchHint;
   final ScrollController? controller;
   final ScrollPhysics? physics;
@@ -15,10 +14,6 @@ class CountryPickerView extends StatefulWidget {
   const CountryPickerView({
     super.key,
     required this.onSelect,
-    this.showFlag = true,
-    this.showCurrencyName = true,
-    this.showCurrencyCode = true,
-    this.showSearchField = true,
     this.searchHint,
     this.controller,
     this.physics,
@@ -29,16 +24,11 @@ class CountryPickerView extends StatefulWidget {
 }
 
 class _CountryPickerViewState extends State<CountryPickerView> {
-  final CurrencyService _currencyService = CurrencyService();
-
-  late List<Currency> _currencyList;
   TextEditingController? _searchController;
 
   @override
   void initState() {
     _searchController = TextEditingController();
-    _currencyList = _currencyService.getAll();
-
     super.initState();
   }
 
@@ -51,61 +41,25 @@ class _CountryPickerViewState extends State<CountryPickerView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(title: const Text('Select Currency')),
       body: Column(
-        children: <Widget>[
+        children: [
           const SizedBox(height: 12),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            child: widget.showSearchField
-                ? TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      labelText: widget.searchHint ?? "Search",
-                      hintText: widget.searchHint ?? "Search",
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: const Color(0xFF8C98A8).withOpacity(0.2),
-                        ),
-                      ),
-                    ),
-                    onChanged: _filterSearchResults,
-                  )
-                : Container(),
+            child: SearchField(),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20.0),
+            child: Divider(thickness: 1),
           ),
           Expanded(
-            child: ListView(
-              physics: ScrollPhysics(),
-              children: [
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Divider(thickness: 1),
-                ),
-              ],
+            child: CurrencyWidget(
+              
             ),
           ),
         ],
       ),
     );
-  }
-
-
-
-  void _filterSearchResults(String query) {
-    List<Currency> searchResult = <Currency>[];
-
-    if (query.isEmpty) {
-      searchResult.addAll(_currencyList);
-    } else {
-      searchResult = _currencyList
-          .where(
-            (c) =>
-                c.name.toLowerCase().contains(query.toLowerCase().trim()) ||
-                c.code.toLowerCase().contains(query.toLowerCase().trim()),
-          )
-          .toList();
-    }
-
   }
 }
