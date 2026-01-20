@@ -1,4 +1,5 @@
 import 'package:akiba/features/category/view/add_category.dart';
+import 'package:akiba/features/category/widget/category_chip.dart';
 import 'package:flutter/material.dart';
 
 class CategoryView extends StatefulWidget {
@@ -25,6 +26,7 @@ class _CategoryViewState extends State<CategoryView> {
           ),
         ],
       ),
+      body: CategoryChip(),
     );
   }
 }

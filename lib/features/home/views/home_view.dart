@@ -53,7 +53,7 @@ class _HomeViewState extends State<HomeView> {
             icon: Icon(
               Icons.home_rounded,
               color: _page == 0 ? Pallete.greenColor : Pallete.greyColor,
-              size: 28,
+              size: 32,
             ),
             label: 'Home',
           ),
@@ -61,7 +61,7 @@ class _HomeViewState extends State<HomeView> {
             icon: Icon(
               Icons.bar_chart_rounded,
               color: _page == 1 ? Pallete.greenColor : Pallete.greyColor,
-              size: 28,
+              size: 32,
             ),
             label: 'Stats',
           ),
@@ -69,7 +69,7 @@ class _HomeViewState extends State<HomeView> {
             icon: Icon(
               Icons.credit_card_rounded,
               color: _page == 2 ? Pallete.greenColor : Pallete.greyColor,
-              size: 28,
+              size: 32,
             ),
             label: 'Budget',
           ),
