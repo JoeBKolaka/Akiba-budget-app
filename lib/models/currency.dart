@@ -47,7 +47,7 @@ class Currency {
     required this.symbolOnLeft,
     required this.decimalSeparator,
     required this.thousandsSeparator,
-    required this.spaceBetweenAmountAndSymbol,
+    required this.spaceBetweenAmountAndSymbol, required int ,
   });
 
   Currency.from({required Map<String, dynamic> json})
@@ -76,4 +76,6 @@ class Currency {
         'thousands_separator': thousandsSeparator,
         'space_between_amount_and_symbol': spaceBetweenAmountAndSymbol,
       };
+
+  void operator [](String other) {}
 }

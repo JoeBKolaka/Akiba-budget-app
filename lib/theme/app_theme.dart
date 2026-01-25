@@ -2,7 +2,7 @@ import 'package:akiba/theme/pallete.dart';
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static ThemeData theme = ThemeData.dark().copyWith(
+  static ThemeData theme = ThemeData.light().copyWith(
     scaffoldBackgroundColor: Pallete.backgroundColor,
     appBarTheme: const AppBarTheme(
       backgroundColor: Pallete.backgroundColor,

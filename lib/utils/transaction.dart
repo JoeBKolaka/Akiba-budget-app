@@ -1,3 +1,101 @@
+class Transaction {
+  String getDayName(DateTime dateTime) {
+    switch (dateTime.weekday) {
+      case 1:
+        return 'Mon';
+      case 2:
+        return 'Tue';
+      case 3:
+        return 'Wed';
+      case 4:
+        return 'Thu';
+      case 5:
+        return 'Fri';
+      case 6:
+        return 'Sat';
+      case 7:
+        return 'Sun';
+      default:
+        return '';
+    }
+  }
+
+  DateTime startOfWeekDate() {
+    DateTime? startOfWeek;
+
+    DateTime today = DateTime.now();
+    for (int i = 0; i < 7; i++) {
+      if (getDayName(today.subtract(Duration(days: i))) == 'Sun') {
+        startOfWeek = today.subtract(Duration(days: i));
+      }
+    }
+    return startOfWeek!;
+  }
+
+  String getMonthName(DateTime dateTime) {
+    switch (dateTime.month) {
+      case 1:
+        return 'Jan';
+      case 2:
+        return 'Feb';
+      case 3:
+        return 'Mar';
+      case 4:
+        return 'Apr';
+      case 5:
+        return 'May';
+      case 6:
+        return 'Jun';
+      case 7:
+        return 'Jul';
+      case 8:
+        return 'Aug';
+      case 9:
+        return 'Sep';
+      case 10:
+        return 'Oct';
+      case 11:
+        return 'Nov';
+      case 12:
+        return 'Dec';
+      default:
+        return '';
+    }
+  }
+
+  DateTime startOfMonthDate() {
+    DateTime? startOfMonth;
+
+    DateTime month = DateTime.now();
+
+    for (int i = 0; i < 12; i++) {
+      if (getMonthName(month.subtract(Duration())) == 'Jan') {
+        startOfMonth = month.subtract(Duration());
+      }
+    }
+
+    return startOfMonth!;
+  }
+  //Map<String,double> calculateDailyExpenseSummary() {
+  //  Map<String,double> = dailyExpenseSummary = {
+  //    //date(yyymmdd) : ammountTotalForDay 
+  //  };
+  //  for (var expense in overallExpenseList) {
+  //    String date = expense.dateTime
+  //    double ammount = double.parse(expense.ammount);
+
+  //    if (dailyExpenseSummary.containsKey(date)) {
+  //      double currentAmount = dailyExpenseSummary[data]!;
+  //      currentAmount += amount;
+  //      dailyExpenseSummary[data]=currentAmount;
+  //    }else{
+  //      dailyExpenseSummary.addAll((date:ammount));
+  //    }
+  //  }
+  //  return dailyExpenseSummary;//
+  //}
+}
+
 const transactions = [
   {
     "id": 1,
@@ -6,7 +104,7 @@ const transactions = [
     "color": "255,107,107,1.0",
     "amount": 24.99,
     "type": "expense",
-    "date": "2024-01-15"
+    "date": "2024-01-15",
   },
   {
     "id": 2,
@@ -15,7 +113,7 @@ const transactions = [
     "color": "92,124,255,1.0",
     "amount": 15.50,
     "type": "expense",
-    "date": "2024-01-15"
+    "date": "2024-01-15",
   },
   {
     "id": 3,
@@ -24,7 +122,7 @@ const transactions = [
     "color": "255,167,92,1.0",
     "amount": 85.75,
     "type": "expense",
-    "date": "2024-01-14"
+    "date": "2024-01-14",
   },
   {
     "id": 4,
@@ -33,7 +131,7 @@ const transactions = [
     "color": "167,92,255,1.0",
     "amount": 15.99,
     "type": "expense",
-    "date": "2024-01-14"
+    "date": "2024-01-14",
   },
   {
     "id": 5,
@@ -42,7 +140,7 @@ const transactions = [
     "color": "255,219,92,1.0",
     "amount": 120.00,
     "type": "expense",
-    "date": "2024-01-13"
+    "date": "2024-01-13",
   },
   {
     "id": 6,
@@ -51,7 +149,7 @@ const transactions = [
     "color": "92,255,219,1.0",
     "amount": 150.00,
     "type": "expense",
-    "date": "2024-01-12"
+    "date": "2024-01-12",
   },
   {
     "id": 7,
@@ -60,7 +158,7 @@ const transactions = [
     "color": "92,255,140,1.0",
     "amount": 3500.00,
     "type": "income",
-    "date": "2024-01-12"
+    "date": "2024-01-12",
   },
   {
     "id": 8,
@@ -69,7 +167,7 @@ const transactions = [
     "color": "107,219,255,1.0",
     "amount": 450.00,
     "type": "expense",
-    "date": "2024-01-11"
+    "date": "2024-01-11",
   },
   {
     "id": 9,
@@ -78,7 +176,7 @@ const transactions = [
     "color": "255,107,219,1.0",
     "amount": 35.00,
     "type": "expense",
-    "date": "2024-01-10"
+    "date": "2024-01-10",
   },
   {
     "id": 10,
@@ -87,7 +185,7 @@ const transactions = [
     "color": "124,255,92,1.0",
     "amount": 200.00,
     "type": "expense",
-    "date": "2024-01-10"
+    "date": "2024-01-10",
   },
   {
     "id": 11,
@@ -96,7 +194,7 @@ const transactions = [
     "color": "255,140,92,1.0",
     "amount": 1200.00,
     "type": "expense",
-    "date": "2024-01-09"
+    "date": "2024-01-09",
   },
   {
     "id": 12,
@@ -105,7 +203,7 @@ const transactions = [
     "color": "92,140,255,1.0",
     "amount": 800.00,
     "type": "income",
-    "date": "2024-01-08"
+    "date": "2024-01-08",
   },
   {
     "id": 13,
@@ -114,7 +212,7 @@ const transactions = [
     "color": "255,92,219,1.0",
     "amount": 10.99,
     "type": "expense",
-    "date": "2024-01-08"
+    "date": "2024-01-08",
   },
   {
     "id": 14,
@@ -123,7 +221,7 @@ const transactions = [
     "color": "255,92,140,1.0",
     "amount": 50.00,
     "type": "expense",
-    "date": "2024-01-07"
+    "date": "2024-01-07",
   },
   {
     "id": 15,
@@ -132,7 +230,7 @@ const transactions = [
     "color": "92,167,255,1.0",
     "amount": 45.00,
     "type": "expense",
-    "date": "2024-01-07"
+    "date": "2024-01-07",
   },
   {
     "id": 16,
@@ -141,7 +239,7 @@ const transactions = [
     "color": "255,182,92,1.0",
     "amount": 65.00,
     "type": "expense",
-    "date": "2024-01-06"
+    "date": "2024-01-06",
   },
   {
     "id": 17,
@@ -150,7 +248,7 @@ const transactions = [
     "color": "167,140,255,1.0",
     "amount": 120.50,
     "type": "expense",
-    "date": "2024-01-05"
+    "date": "2024-01-05",
   },
   {
     "id": 18,
@@ -159,7 +257,7 @@ const transactions = [
     "color": "140,92,92,1.0",
     "amount": 5.75,
     "type": "expense",
-    "date": "2024-01-05"
+    "date": "2024-01-05",
   },
   {
     "id": 19,
@@ -168,7 +266,7 @@ const transactions = [
     "color": "92,255,167,1.0",
     "amount": 95.30,
     "type": "expense",
-    "date": "2024-01-04"
+    "date": "2024-01-04",
   },
   {
     "id": 20,
@@ -177,7 +275,7 @@ const transactions = [
     "color": "255,124,92,1.0",
     "amount": 75.00,
     "type": "expense",
-    "date": "2024-01-03"
+    "date": "2024-01-03",
   },
   {
     "id": 21,
@@ -186,7 +284,7 @@ const transactions = [
     "color": "167,92,255,1.0",
     "amount": 28.00,
     "type": "expense",
-    "date": "2024-01-03"
+    "date": "2024-01-03",
   },
   {
     "id": 22,
@@ -195,7 +293,7 @@ const transactions = [
     "color": "255,200,92,1.0",
     "amount": 45.25,
     "type": "expense",
-    "date": "2024-01-02"
+    "date": "2024-01-02",
   },
   {
     "id": 23,
@@ -204,7 +302,7 @@ const transactions = [
     "color": "107,255,107,1.0",
     "amount": 22.99,
     "type": "expense",
-    "date": "2024-01-02"
+    "date": "2024-01-02",
   },
   {
     "id": 24,
@@ -213,7 +311,7 @@ const transactions = [
     "color": "92,255,92,1.0",
     "amount": 125.50,
     "type": "income",
-    "date": "2024-01-01"
+    "date": "2024-01-01",
   },
   {
     "id": 25,
@@ -222,7 +320,7 @@ const transactions = [
     "color": "255,140,200,1.0",
     "amount": 89.99,
     "type": "expense",
-    "date": "2023-12-30"
+    "date": "2023-12-30",
   },
   {
     "id": 26,
@@ -231,7 +329,7 @@ const transactions = [
     "color": "255,107,107,1.0",
     "amount": 68.45,
     "type": "expense",
-    "date": "2023-12-29"
+    "date": "2023-12-29",
   },
   {
     "id": 27,
@@ -240,7 +338,7 @@ const transactions = [
     "color": "92,124,255,1.0",
     "amount": 22.80,
     "type": "expense",
-    "date": "2023-12-28"
+    "date": "2023-12-28",
   },
   {
     "id": 28,
@@ -249,7 +347,7 @@ const transactions = [
     "color": "255,167,92,1.0",
     "amount": 120.00,
     "type": "expense",
-    "date": "2023-12-27"
+    "date": "2023-12-27",
   },
   {
     "id": 29,
@@ -258,7 +356,7 @@ const transactions = [
     "color": "167,92,255,1.0",
     "amount": 150.00,
     "type": "expense",
-    "date": "2023-12-26"
+    "date": "2023-12-26",
   },
   {
     "id": 30,
@@ -267,7 +365,7 @@ const transactions = [
     "color": "255,219,92,1.0",
     "amount": 45.60,
     "type": "expense",
-    "date": "2023-12-25"
+    "date": "2023-12-25",
   },
   {
     "id": 31,
@@ -276,7 +374,7 @@ const transactions = [
     "color": "92,255,219,1.0",
     "amount": 75.00,
     "type": "expense",
-    "date": "2023-12-24"
+    "date": "2023-12-24",
   },
   {
     "id": 32,
@@ -285,7 +383,7 @@ const transactions = [
     "color": "255,255,107,1.0",
     "amount": 500.00,
     "type": "income",
-    "date": "2023-12-24"
+    "date": "2023-12-24",
   },
   {
     "id": 33,
@@ -294,7 +392,7 @@ const transactions = [
     "color": "107,219,255,1.0",
     "amount": 320.00,
     "type": "expense",
-    "date": "2023-12-23"
+    "date": "2023-12-23",
   },
   {
     "id": 34,
@@ -303,7 +401,7 @@ const transactions = [
     "color": "255,107,219,1.0",
     "amount": 85.00,
     "type": "expense",
-    "date": "2023-12-22"
+    "date": "2023-12-22",
   },
   {
     "id": 35,
@@ -312,7 +410,7 @@ const transactions = [
     "color": "124,255,92,1.0",
     "amount": 300.00,
     "type": "expense",
-    "date": "2023-12-21"
+    "date": "2023-12-21",
   },
   {
     "id": 36,
@@ -321,7 +419,7 @@ const transactions = [
     "color": "255,140,92,1.0",
     "amount": 1200.00,
     "type": "expense",
-    "date": "2023-12-20"
+    "date": "2023-12-20",
   },
   {
     "id": 37,
@@ -330,7 +428,7 @@ const transactions = [
     "color": "92,140,255,1.0",
     "amount": 1200.00,
     "type": "income",
-    "date": "2023-12-19"
+    "date": "2023-12-19",
   },
   {
     "id": 38,
@@ -339,7 +437,7 @@ const transactions = [
     "color": "255,92,219,1.0",
     "amount": 11.99,
     "type": "expense",
-    "date": "2023-12-19"
+    "date": "2023-12-19",
   },
   {
     "id": 39,
@@ -348,7 +446,7 @@ const transactions = [
     "color": "255,92,140,1.0",
     "amount": 100.00,
     "type": "expense",
-    "date": "2023-12-18"
+    "date": "2023-12-18",
   },
   {
     "id": 40,
@@ -357,7 +455,7 @@ const transactions = [
     "color": "92,167,255,1.0",
     "amount": 20.00,
     "type": "expense",
-    "date": "2023-12-17"
+    "date": "2023-12-17",
   },
   {
     "id": 41,
@@ -366,7 +464,7 @@ const transactions = [
     "color": "255,182,92,1.0",
     "amount": 180.00,
     "type": "expense",
-    "date": "2023-12-16"
+    "date": "2023-12-16",
   },
   {
     "id": 42,
@@ -375,7 +473,7 @@ const transactions = [
     "color": "167,140,255,1.0",
     "amount": 15.99,
     "type": "expense",
-    "date": "2023-12-15"
+    "date": "2023-12-15",
   },
   {
     "id": 43,
@@ -384,7 +482,7 @@ const transactions = [
     "color": "140,92,92,1.0",
     "amount": 18.50,
     "type": "expense",
-    "date": "2023-12-14"
+    "date": "2023-12-14",
   },
   {
     "id": 44,
@@ -393,7 +491,7 @@ const transactions = [
     "color": "92,255,167,1.0",
     "amount": 150.75,
     "type": "expense",
-    "date": "2023-12-13"
+    "date": "2023-12-13",
   },
   {
     "id": 45,
@@ -402,7 +500,7 @@ const transactions = [
     "color": "255,124,92,1.0",
     "amount": 25.00,
     "type": "expense",
-    "date": "2023-12-12"
+    "date": "2023-12-12",
   },
   {
     "id": 46,
@@ -411,7 +509,7 @@ const transactions = [
     "color": "255,140,107,1.0",
     "amount": 139.00,
     "type": "expense",
-    "date": "2023-12-11"
+    "date": "2023-12-11",
   },
   {
     "id": 47,
@@ -420,7 +518,7 @@ const transactions = [
     "color": "107,200,255,1.0",
     "amount": 65.00,
     "type": "expense",
-    "date": "2023-12-10"
+    "date": "2023-12-10",
   },
   {
     "id": 48,
@@ -429,7 +527,7 @@ const transactions = [
     "color": "92,255,92,1.0",
     "amount": 850.00,
     "type": "income",
-    "date": "2023-12-09"
+    "date": "2023-12-09",
   },
   {
     "id": 49,
@@ -438,7 +536,7 @@ const transactions = [
     "color": "255,107,200,1.0",
     "amount": 399.99,
     "type": "expense",
-    "date": "2023-12-08"
+    "date": "2023-12-08",
   },
   {
     "id": 50,
@@ -447,6 +545,6 @@ const transactions = [
     "color": "255,150,107,1.0",
     "amount": 35.25,
     "type": "expense",
-    "date": "2023-12-07"
-  }
+    "date": "2023-12-07",
+  },
 ];

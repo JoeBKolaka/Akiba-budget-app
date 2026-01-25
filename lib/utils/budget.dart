@@ -1,5 +1,5 @@
 // Current date for reference
-const currentDate = "2024-01-15"; // Monday
+// Monday
 
 const budgets = [
   {
