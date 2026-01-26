@@ -61,15 +61,20 @@ class _HomeViewState extends State<HomeView> {
             icon: Icon(
               Icons.bar_chart_rounded,
               color: _page == 1 ? Pallete.greenColor : Pallete.greyColor,
-              size: 32,
             ),
             label: 'Stats',
           ),
           BottomNavigationBarItem(
             icon: Icon(
-              Icons.credit_card_rounded,
+              Icons.account_balance,
               color: _page == 2 ? Pallete.greenColor : Pallete.greyColor,
-              size: 32,
+            ),
+            label: 'Account',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.credit_card_rounded,
+              color: _page == 3 ? Pallete.greenColor : Pallete.greyColor,
             ),
             label: 'Budget',
           ),
