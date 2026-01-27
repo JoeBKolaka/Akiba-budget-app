@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'theme/app_theme.dart';
 
-void main() {
+void main() {                                                   
   runApp(
     MultiBlocProvider(
       providers: [
@@ -43,7 +43,6 @@ class _MyAppState extends State<MyApp> {
       theme: AppTheme.theme,
       home: BlocBuilder<CurrencyCubit, CurrencyState>(
         builder: (context, state) {
-          //return CountryPickerView(onSelect: (Currency value) {});
           if (state is CurrencyPicked) {
             return const HomeView();
           }

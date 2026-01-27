@@ -1,5 +1,6 @@
 import 'package:akiba/constants/ui_constants.dart';
 import 'package:akiba/features/category/view/category_view.dart';
+import 'package:akiba/features/home/views/add_transaction_view.dart';
 import 'package:akiba/theme/pallete.dart';
 import 'package:flutter/material.dart';
 
@@ -40,7 +41,9 @@ class _HomeViewState extends State<HomeView> {
       body: IndexedStack(index: _page, children: UiConstants.bottomTabBarPages),
       floatingActionButton: _page == 0
           ? FloatingActionButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(context, AddTransactionView.route());
+              },
               child: const Icon(Icons.add, color: Pallete.whiteColor, size: 28),
             )
           : null,
@@ -53,7 +56,6 @@ class _HomeViewState extends State<HomeView> {
             icon: Icon(
               Icons.home_rounded,
               color: _page == 0 ? Pallete.greenColor : Pallete.greyColor,
-              size: 32,
             ),
             label: 'Home',
           ),
