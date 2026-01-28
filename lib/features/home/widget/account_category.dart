@@ -1,17 +1,21 @@
 import 'package:akiba/models/category_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:akiba/features/category/cubit/add_new_category_cubit.dart';
 
-class CategoryChip extends StatefulWidget {
-  final VoidCallback? ontap;
-  const CategoryChip({super.key, this.ontap});
+import '../../category/cubit/add_new_category_cubit.dart';
+
+typedef CategoryChipOnTap =
+    void Function(String categoryId, String categoryName, String categoryEmoji);
+
+class AccountCategory extends StatefulWidget {
+  final CategoryChipOnTap? onTap;
+  const AccountCategory({super.key, this.onTap});
 
   @override
-  State<CategoryChip> createState() => _CategoryChipState();
+  State<AccountCategory> createState() => _AccountCategoryState();
 }
 
-class _CategoryChipState extends State<CategoryChip> {
+class _AccountCategoryState extends State<AccountCategory> {
   late List<CategoryModel> _categories = [];
 
   @override
@@ -47,7 +51,13 @@ class _CategoryChipState extends State<CategoryChip> {
           alignment: WrapAlignment.center,
           children: List.generate(_categories.length, (index) {
             return InkWell(
-              onTap: widget.ontap,
+              onTap: () {
+                widget.onTap?.call(
+                  _categories[index].id.toString(),
+                  _categories[index].name,
+                  _categories[index].emoji,
+                );
+              },
               child: Chip(
                 avatar: CircleAvatar(
                   backgroundColor: Colors.transparent,

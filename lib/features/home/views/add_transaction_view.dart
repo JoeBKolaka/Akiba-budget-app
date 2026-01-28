@@ -23,6 +23,11 @@ class _AddTransactionViewState extends State<AddTransactionView> {
 
   String? _selectedAccountId;
   String? _selectedAccountName;
+  
+  // Add state for selected category
+  String? _selectedCategoryId;
+  String? _selectedCategoryName;
+  String? _selectedCategoryEmoji;
 
   void onPressed() {
     print('Save button pressed');
@@ -57,7 +62,15 @@ class _AddTransactionViewState extends State<AddTransactionView> {
             ? 480
             : double.infinity,
       ),
-      builder: (context) => const CategoryBottom(),
+      builder: (context) => CategoryBottom(
+        onCategorySelected: (categoryId, categoryName, categoryEmoji) {
+          setState(() {
+            _selectedCategoryId = categoryId;
+            _selectedCategoryName = categoryName;
+            _selectedCategoryEmoji = categoryEmoji;
+          });
+        },
+      ),
     );
   }
 
@@ -115,8 +128,33 @@ class _AddTransactionViewState extends State<AddTransactionView> {
             child: Row(
               children: [
                 InputChip(
-                  label: Text('Category'),
+                  label: _selectedCategoryName != null
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (_selectedCategoryEmoji != null)
+                              Text(_selectedCategoryEmoji!),
+                            SizedBox(width: 4),
+                            Text(_selectedCategoryName!),
+                          ],
+                        )
+                      : Text('Category'),
+                  backgroundColor: _selectedCategoryName != null
+                      ? Colors.green.shade100
+                      : null,
                   onPressed: _showCategoryBottomSheet,
+                  deleteIcon: _selectedCategoryName != null
+                      ? Icon(Icons.close, size: 18)
+                      : null,
+                  onDeleted: _selectedCategoryName != null
+                      ? () {
+                          setState(() {
+                            _selectedCategoryId = null;
+                            _selectedCategoryName = null;
+                            _selectedCategoryEmoji = null;
+                          });
+                        }
+                      : null,
                 ),
                 SizedBox(width: 8),
                 InputChip(
