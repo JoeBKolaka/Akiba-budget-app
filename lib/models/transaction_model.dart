@@ -6,6 +6,7 @@ class TransactionModel {
   final String user_id;
   final String category_id;
   final String account_id;
+  final String transaction_name;
   final double transaction_amount;
   final String transaction_type;
   final DateTime created_at;
@@ -14,6 +15,7 @@ class TransactionModel {
     required this.user_id,
     required this.category_id,
     required this.account_id,
+    required this.transaction_name,
     required this.transaction_amount,
     required this.transaction_type,
     required this.created_at,
@@ -24,6 +26,7 @@ class TransactionModel {
     String? user_id,
     String? category_id,
     String? account_id,
+    String? transaction_name,
     double? transaction_amount,
     String? transaction_type,
     DateTime? created_at,
@@ -33,6 +36,7 @@ class TransactionModel {
       user_id: user_id ?? this.user_id,
       category_id: category_id ?? this.category_id,
       account_id: account_id ?? this.account_id,
+      transaction_name: transaction_name ?? this.transaction_name,
       transaction_amount: transaction_amount ?? this.transaction_amount,
       transaction_type: transaction_type ?? this.transaction_type,
       created_at: created_at ?? this.created_at,
@@ -45,6 +49,7 @@ class TransactionModel {
       'user_id': user_id,
       'category_id': category_id,
       'account_id': account_id,
+      'transaction_name': transaction_name,
       'transaction_amount': transaction_amount,
       'transaction_type': transaction_type,
       'created_at': created_at.millisecondsSinceEpoch,
@@ -57,6 +62,7 @@ class TransactionModel {
       user_id: map['user_id'] as String,
       category_id: map['category_id'] as String,
       account_id: map['account_id'] as String,
+      transaction_name: map['transaction_name'] as String,
       transaction_amount: map['transaction_amount'] as double,
       transaction_type: map['transaction_type'] as String,
       created_at: DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
@@ -65,11 +71,12 @@ class TransactionModel {
 
   String toJson() => json.encode(toMap());
 
-  factory TransactionModel.fromJson(String source) => TransactionModel.fromMap(json.decode(source) as Map<String, dynamic>);
+  factory TransactionModel.fromJson(String source) =>
+      TransactionModel.fromMap(json.decode(source) as Map<String, dynamic>);
 
   @override
   String toString() {
-    return 'TransactionModel(id: $id, user_id: $user_id, category_id: $category_id, account_id: $account_id, transaction_amount: $transaction_amount, transaction_type: $transaction_type, created_at: $created_at)';
+    return 'TransactionModel(id: $id, user_id: $user_id, category_id: $category_id, account_id: $account_id, transaction_name: $transaction_name, transaction_amount: $transaction_amount, transaction_type: $transaction_type, created_at: $created_at)';
   }
 
   @override
@@ -81,6 +88,7 @@ class TransactionModel {
       other.user_id == user_id &&
       other.category_id == category_id &&
       other.account_id == account_id &&
+      other.transaction_name == transaction_name &&
       other.transaction_amount == transaction_amount &&
       other.transaction_type == transaction_type &&
       other.created_at == created_at;
@@ -92,6 +100,7 @@ class TransactionModel {
       user_id.hashCode ^
       category_id.hashCode ^
       account_id.hashCode ^
+      transaction_name.hashCode ^
       transaction_amount.hashCode ^
       transaction_type.hashCode ^
       created_at.hashCode;

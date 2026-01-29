@@ -1,8 +1,11 @@
-import 'package:akiba/theme/pallete.dart';
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
 
+import 'package:akiba/theme/pallete.dart';
+
 class TransactionField extends StatefulWidget {
-  const TransactionField({super.key});
+  final TextEditingController? controller;
+  const TransactionField({Key? key, this.controller}) : super(key: key);
 
   @override
   State<TransactionField> createState() => _TransactionFieldState();

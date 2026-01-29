@@ -2,19 +2,21 @@ import 'package:akiba/features/account/cubit/account_cubit.dart';
 import 'package:akiba/features/category/cubit/add_new_category_cubit.dart';
 import 'package:akiba/features/create%20account/cubit/currency_cubit.dart';
 import 'package:akiba/features/create%20account/views/country_picker_view.dart';
+import 'package:akiba/features/home/cubit/transaction_cubit.dart';
 import 'package:akiba/features/home/views/home_view.dart';
 import 'package:akiba/models/currency.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'theme/app_theme.dart';
 
-void main() {                                                   
+void main() {
   runApp(
     MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => CurrencyCubit()),
         BlocProvider(create: (_) => CategoryCubit()),
         BlocProvider(create: (_) => AccountCubit()),
+        BlocProvider(create: (_) => TransactionCubit()),
       ],
       child: const MyApp(),
     ),
