@@ -14,7 +14,7 @@ class AccountLocalRepository {
 
   Future<Database> _initDb() async {
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, "finance.db"); // Use consistent database name
+    final path = join(dbPath, "finance.db");
     return openDatabase(
       path,
       version: 1,
@@ -37,7 +37,6 @@ class AccountLocalRepository {
   Future<void> insertAccount(
     AccountModel accountModel, {
     required String user_id,
-    
   }) async {
     final db = await database;
     await db.insert(
@@ -60,12 +59,12 @@ class AccountLocalRepository {
     return [];
   }
 
-  Future<AccountModel?> getAccountById(String account_id) async {
+  Future<AccountModel?> getAccountById(String accountId) async {
     final db = await database;
     final results = await db.query(
       tableName,
       where: 'id = ?',
-      whereArgs: [account_id],
+      whereArgs: [accountId],
     );
 
     if (results.isNotEmpty) {
@@ -74,41 +73,13 @@ class AccountLocalRepository {
     return null;
   }
 
-  Future<bool> hasSufficientBalance(String account_id, double ammount) async {
-    final account = await getAccountById(account_id);
-    if (account == null) return false;
-    return account.ammount >= ammount;
-  }
-
-  Future<void> updateAccountBalance(
-    String account_id,
-    double new_ammount,
-  ) async {
+  Future<void> updateAccountAmount(String accountId, double newAmount) async {
     final db = await database;
     await db.update(
       tableName,
-      {'ammount': new_ammount},
+      {'ammount': newAmount},
       where: 'id = ?',
-      whereArgs: [account_id],
+      whereArgs: [accountId],
     );
-  }
-
-  Future<void> addToAccountBalance(String account_id, double ammount) async {
-    final account = await getAccountById(account_id);
-    if (account != null) {
-      final newBalance = account.ammount + ammount;
-      await updateAccountBalance(account_id, newBalance);
-    }
-  }
-
-  Future<void> subtractFromAccountBalance(
-    String account_id,
-    double ammount,
-  ) async {
-    final account = await getAccountById(account_id);
-    if (account != null) {
-      final newBalance = account.ammount - ammount;
-      await updateAccountBalance(account_id, newBalance);
-    }
   }
 }

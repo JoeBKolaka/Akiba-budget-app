@@ -45,7 +45,7 @@ class _AccountListState extends State<AccountList> {
         ),
         BlocListener<TransactionCubit, TransactionState>(
           listener: (context, state) {
-            if (state is TransactionStateAdd) {
+            if (state is TransactionStateLoaded) {
               _loadAccounts();
             }
           },

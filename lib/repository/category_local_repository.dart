@@ -35,7 +35,10 @@ class CategoryLocalRepository {
     );
   }
 
-  Future<void> insertCategory(CategoryModel categoryModel, {required String user_id}) async {
+  Future<void> insertCategory(
+    CategoryModel categoryModel, {
+    required String user_id,
+  }) async {
     final db = await database;
 
     await db.insert(
@@ -57,5 +60,15 @@ class CategoryLocalRepository {
       return categories;
     }
     return [];
+  }
+
+  Future<CategoryModel?> getCategoryById(String id) async {
+    final db = await database;
+    final results = await db.query(tableName, where: 'id = ?', whereArgs: [id]);
+
+    if (results.isNotEmpty) {
+      return CategoryModel.fromMap(results.first);
+    }
+    return null;
   }
 }

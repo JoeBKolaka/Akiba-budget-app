@@ -1,7 +1,8 @@
 import 'package:akiba/features/home/cubit/transaction_cubit.dart';
+import 'package:akiba/models/category_model.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:akiba/models/transaction_model.dart';
 
 
@@ -14,23 +15,42 @@ class TransactionList extends StatefulWidget {
 
 class _TransactionListState extends State<TransactionList> {
   List<TransactionModel> _transactions = [];
+  List<CategoryModel> _categories = [];
 
   @override
   void initState() {
     super.initState();
-    _loadTransactions();
+    _loadData();
   }
 
-  void _loadTransactions() async {
+  void _loadData() async {
+    // Load transactions
     final transactions = await context
         .read<TransactionCubit>()
         .transactionLocalRepository
         .getTransactions();
     
+    // Load categories
+    final categories = await context
+        .read<TransactionCubit>()
+        .categoryLocalRepository
+        .getCategories();
+    
     if (mounted) {
       setState(() {
         _transactions = transactions;
+        _categories = categories;
       });
+    }
+  }
+
+  CategoryModel? _getCategoryForTransaction(String categoryId) {
+    try {
+      return _categories.firstWhere(
+        (category) => category.id == categoryId,
+      );
+    } catch (e) {
+      return null;
     }
   }
 
@@ -38,8 +58,8 @@ class _TransactionListState extends State<TransactionList> {
   Widget build(BuildContext context) {
     return BlocListener<TransactionCubit, TransactionState>(
       listener: (context, state) {
-        if (state is TransactionStateAdd) {
-          _loadTransactions();
+        if (state is TransactionStateLoaded) {
+          _loadData();
         }
       },
       child: _buildTransactionList(),
@@ -107,6 +127,8 @@ class _TransactionListState extends State<TransactionList> {
               itemCount: dateTransactions.length,
               itemBuilder: (context, index) {
                 final transaction = dateTransactions[index];
+                final category = _getCategoryForTransaction(transaction.category_id);
+                
                 return Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8.0,
@@ -114,10 +136,10 @@ class _TransactionListState extends State<TransactionList> {
                   ),
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: Colors.greenAccent,
+                      backgroundColor: category != null ? category.color : Colors.grey,
                       child: Center(
                         child: Text(
-                          '💰',
+                          category?.emoji ?? '💰',
                           style: const TextStyle(),
                         ),
                       ),

@@ -1,4 +1,5 @@
 import 'package:akiba/features/account/cubit/account_cubit.dart';
+import 'package:akiba/features/budget/cubit/budget_cubit.dart';
 import 'package:akiba/features/category/cubit/add_new_category_cubit.dart';
 import 'package:akiba/features/create%20account/cubit/currency_cubit.dart';
 import 'package:akiba/features/create%20account/views/country_picker_view.dart';
@@ -17,6 +18,7 @@ void main() {
         BlocProvider(create: (_) => CategoryCubit()),
         BlocProvider(create: (_) => AccountCubit()),
         BlocProvider(create: (_) => TransactionCubit()),
+        BlocProvider(create: (_) => BudgetCubit())
       ],
       child: const MyApp(),
     ),

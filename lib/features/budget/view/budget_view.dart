@@ -1,5 +1,6 @@
 import 'package:akiba/features/budget/view/add_budget.dart';
 import 'package:akiba/features/budget/widget/budget_card.dart';
+import 'package:akiba/models/budget_model.dart';
 import 'package:akiba/theme/pallete.dart';
 import 'package:akiba/utils/budget.dart';
 import 'package:flutter/material.dart';
@@ -19,22 +20,9 @@ class _BudgetViewState extends State<BudgetView> {
         automaticallyImplyLeading: false,
         title: const Text('Budget'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2, 
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 0.8, 
-          ),
-          itemCount: budgets.length,
-          itemBuilder: (context, index) {
-            return BudgetCard(budget: budgets[index]);
-          },
-        ),
-      ),
+      body:BudgetCard(),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'add_budget_fab',
         onPressed: () {
           Navigator.push(context, AddBudget.route());
         },
@@ -43,3 +31,36 @@ class _BudgetViewState extends State<BudgetView> {
     );
   }
 }
+String _calculateDaysLeft(BudgetModel budget) {
+    final period = budget.repetition;
+    final now = DateTime.now();
+
+    if (period == '0') {
+      // Daily
+      final nextDay = DateTime(now.year, now.month, now.day + 1);
+      final hoursLeft = nextDay.difference(now).inHours;
+      return '$hoursLeft hours left';
+    } else if (period == '1') {
+      // Weekly
+      final nextMonday = DateTime(
+        now.year,
+        now.month,
+        now.day + (8 - now.weekday) % 7,
+      );
+      final daysLeft = nextMonday.difference(now).inDays;
+      return '$daysLeft days left';
+    } else if (period == '2') {
+      // Monthly
+      final nextMonth = DateTime(now.year, now.month + 1, 1);
+      final totalHours = nextMonth.difference(now).inHours;
+      final daysLeft = (totalHours / 24).ceil(); // Round up
+      return '$daysLeft days left';
+    } else if (period == '3') {
+      // Yearly
+      final nextYear = DateTime(now.year + 1, 1, 1);
+      final totalHours = nextYear.difference(now).inHours;
+      final daysLeft = (totalHours / 24).ceil(); // Round up
+      return '$daysLeft days left';
+    }
+    return '';
+  }

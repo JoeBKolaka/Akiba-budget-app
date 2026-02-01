@@ -1,18 +1,26 @@
+
 import 'dart:convert';
+import 'dart:ui';
+
+import 'package:akiba/utils/utils.dart';
 
 class CategoryModel {
   final String id;
   final String user_id;
   final String name;
   final String emoji;
-  final String hex_color;
+  final String hex_color;  
   final DateTime created_at;
+  
+  
+  Color get color => hexToRgb(hex_color);
+  
   CategoryModel({
     required this.id,
     required this.user_id,
     required this.name,
     required this.emoji,
-    required this.hex_color,
+    required this.hex_color,  
     required this.created_at,
   });
 
@@ -21,7 +29,7 @@ class CategoryModel {
     String? user_id,
     String? name,
     String? emoji,
-    String? hex_color,
+    String? hex_color,  // Keep as String
     DateTime? created_at,
   }) {
     return CategoryModel(
@@ -40,7 +48,7 @@ class CategoryModel {
       'user_id': user_id,
       'name': name,
       'emoji': emoji,
-      'hex_color': hex_color,
+      'hex_color': hex_color,  // Already a string
       'created_at': created_at.millisecondsSinceEpoch,
     };
   }
@@ -51,7 +59,7 @@ class CategoryModel {
       user_id: map['user_id'] as String,
       name: map['name'] as String,
       emoji: map['emoji'] as String,
-      hex_color: map['hex_color'] as String,
+      hex_color: map['hex_color'] as String,  // Already a string
       created_at: DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
     );
   }

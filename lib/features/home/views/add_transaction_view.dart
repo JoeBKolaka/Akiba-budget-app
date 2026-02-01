@@ -61,10 +61,10 @@ class _AddTransactionViewState extends State<AddTransactionView> {
             : double.infinity,
       ),
       builder: (context) => AccountBottom(
-        onAccountSelected: (accountId, accountName) {
+        onAccountSelected: (account_id, account_name) {
           setState(() {
-            _selectedAccountId = accountId;
-            _selectedAccountName = accountName;
+            _selectedAccountId = account_id;
+            _selectedAccountName = account_name;
           });
         },
       ),
@@ -108,7 +108,7 @@ class _AddTransactionViewState extends State<AddTransactionView> {
       body: BlocConsumer<TransactionCubit, TransactionState>(
         listener: (context, state) {
           // TODO: implement listener
-          if (state is TransactionStateAdd) {
+          if (state is TransactionStateLoaded) {
             // Navigate back on success
             Navigator.pop(context, HomeView());
           }
