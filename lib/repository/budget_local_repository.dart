@@ -2,7 +2,6 @@ import 'package:akiba/models/budget_model.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
-
 class BudgetLocalRepository {
   String tableName = "budgets";
   Database? _database;
@@ -43,6 +42,17 @@ class BudgetLocalRepository {
   }) async {
     final db = await database;
 
+    // Check if budget already exists for this category
+    final existing = await db.query(
+      tableName,
+      where: 'category_id = ?',
+      whereArgs: [category_id],
+    );
+    
+    if (existing.isNotEmpty) {
+      throw Exception('Budget already exists for this category');
+    }
+
     await db.insert(
       tableName,
       budgetModel.toMap(),
@@ -63,5 +73,4 @@ class BudgetLocalRepository {
     }
     return [];
   }
-
 }

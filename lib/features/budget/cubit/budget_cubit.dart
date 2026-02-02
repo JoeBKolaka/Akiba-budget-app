@@ -38,7 +38,11 @@ class BudgetCubit extends Cubit<BudgetState> {
       print(budgetModel);
       emit(BudgetStateAdd(budgetModel));
     } catch (e) {
-      emit(BudgetStateError('Failed to save'));
+      if (e.toString().contains('already exists')) {
+        emit(BudgetStateError('Budget already exists for this category'));
+      } else {
+        emit(BudgetStateError('Failed to save'));
+      }
     }
   }
 

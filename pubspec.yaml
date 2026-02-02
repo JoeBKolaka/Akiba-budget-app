@@ -52,7 +52,10 @@ dependencies:
   flutter_staggered_grid_view: ^0.7.0
   uuid: ^4.5.2
   money_input_formatter: ^2.0.0
-  currency_text_input_formatter: ^2.2.9
+  currency_text_input_formatter: ^2.3.0
+  money_formatter: ^0.0.7
+  currency_textfield: ^5.0.0+1
+  flutter_currency_text_input_formatter: ^0.0.1
 
 dev_dependencies:
   flutter_test:

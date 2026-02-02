@@ -1,6 +1,4 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
-
 import 'package:akiba/theme/pallete.dart';
 
 class TransactionField extends StatefulWidget {
@@ -12,12 +10,29 @@ class TransactionField extends StatefulWidget {
 }
 
 class _TransactionFieldState extends State<TransactionField> {
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = widget.controller ?? TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    if (widget.controller == null) {
+      _controller.dispose();
+    }
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 36,
       width: 180,
       child: TextField(
+        controller: _controller, // ADD THIS LINE
         textAlign: TextAlign.center,
         cursorHeight: 12,
         decoration: InputDecoration(

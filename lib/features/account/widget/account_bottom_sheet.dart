@@ -21,18 +21,19 @@ class _AccountBottomSheetState extends State<AccountBottomSheet> {
 
   void createNewAccount() async {
     if (formKey.currentState!.validate()) {
-      CurrencyPicked user = context.read<CurrencyCubit>().state as CurrencyPicked;
+      CurrencyPicked user =
+          context.read<CurrencyCubit>().state as CurrencyPicked;
       String amountText = _amountController.text
           .replaceAll('Ksh', '')
           .replaceAll(',', '')
           .trim();
       double amount = double.tryParse(amountText) ?? 0.0;
       await context.read<AccountCubit>().createNewAccount(
-            account_name: _accountController.text.trim(),
-            ammount: amount,
-            account_type: selectedAccount.name,
-            user_id: user.user.id,
-          );
+        account_name: _accountController.text.trim(),
+        ammount: amount,
+        account_type: selectedAccount.name,
+        user_id: user.user.id,
+      );
     }
   }
 
@@ -97,18 +98,20 @@ class _AccountBottomSheetState extends State<AccountBottomSheet> {
                         });
                       },
                       style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                          (Set<MaterialState> states) {
-                            return Colors.transparent;
-                          },
-                        ),
-                        foregroundColor: MaterialStateProperty.resolveWith<Color>(
-                          (Set<MaterialState> states) {
-                            return states.contains(MaterialState.selected)
-                                ? Theme.of(context).colorScheme.primary
-                                : Colors.grey;
-                          },
-                        ),
+                        backgroundColor:
+                            MaterialStateProperty.resolveWith<Color>((
+                              Set<MaterialState> states,
+                            ) {
+                              return Colors.transparent;
+                            }),
+                        foregroundColor:
+                            MaterialStateProperty.resolveWith<Color>((
+                              Set<MaterialState> states,
+                            ) {
+                              return states.contains(MaterialState.selected)
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Colors.grey;
+                            }),
                         side: MaterialStateProperty.all<BorderSide>(
                           const BorderSide(color: Colors.transparent),
                         ),

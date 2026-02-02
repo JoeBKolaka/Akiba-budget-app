@@ -18,7 +18,7 @@ class _StatisticsState extends State<Statistics> {
     'yearOffset': 0,
     'viewType': 'weekly',
   };
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,8 +28,8 @@ class _StatisticsState extends State<Statistics> {
       ),
       body: Column(
         children: [
-          AspectRatio(
-            aspectRatio: 0.9, 
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.45,
             child: BarGraph(
               selectedDate: selectedDate,
               onViewTypeChanged: (viewType) {

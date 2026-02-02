@@ -20,6 +20,15 @@ class CategoryTransactionList extends StatelessWidget {
     required this.yearOffset,
   });
 
+  // Helper function to get start of week (Monday)
+  DateTime _getStartOfWeek(DateTime date) {
+    // Monday is 1, Sunday is 7
+    final dayOfWeek = date.weekday;
+    // Calculate days to subtract to get to Monday
+    final daysToSubtract = dayOfWeek - 1;
+    return DateTime(date.year, date.month, date.day - daysToSubtract);
+  }
+
   List<TransactionModel> _getFilteredTransactions(
     List<TransactionModel> allTransactions,
   ) {
@@ -36,46 +45,56 @@ class CategoryTransactionList extends StatelessWidget {
     if (selectedView == 'allTime') {
       return categoryTransactions;
     } else if (selectedView == 'weekly') {
-      final baseDate = DateTime.now().add(Duration(days: 7 * weekOffset));
-      final weekStart = baseDate.subtract(Duration(days: baseDate.weekday - 1));
-      final weekEnd = weekStart.add(const Duration(days: 6));
+      // Calculate the week start date based on offsets
+      final baseDate = DateTime.now();
+      
+      // Get the start of the week (Monday)
+      final weekStart = _getStartOfWeek(baseDate).add(Duration(days: 7 * weekOffset));
+      
+      // Get the end of the week (Sunday 23:59:59.999)
+      final weekEnd = weekStart.add(const Duration(days: 6, hours: 23, minutes: 59, seconds: 59, milliseconds: 999));
 
       return categoryTransactions.where((transaction) {
         final transactionDate = transaction.created_at;
-        return transactionDate.isAtSameMomentAs(weekStart) ||
-            (transactionDate.isAfter(weekStart) &&
-                transactionDate.isBefore(weekEnd));
+        return (transactionDate.isAfter(weekStart) || 
+                transactionDate.isAtSameMomentAs(weekStart)) &&
+               (transactionDate.isBefore(weekEnd) || 
+                transactionDate.isAtSameMomentAs(weekEnd));
       }).toList();
     } else if (selectedView == 'monthly') {
-      final now = DateTime.now();
-      final monthStart = DateTime(now.year, now.month + monthOffset, 1);
-      final monthEnd = DateTime(
-        monthStart.year,
-        monthStart.month + 1,
-        0,
-        23,
-        59,
-        59,
-        999,
-      );
+      // Calculate the actual month based on offsets
+      final month = DateTime.now().month + monthOffset;
+      final year = DateTime.now().year;
+      
+      // Adjust for year overflow/underflow
+      final actualYear = year + (month - 1) ~/ 12;
+      final actualMonth = ((month - 1) % 12) + 1;
+      
+      // Get start and end of month
+      final monthStart = DateTime(actualYear, actualMonth, 1);
+      final monthEnd = DateTime(actualYear, actualMonth + 1, 0, 23, 59, 59, 999);
 
       return categoryTransactions.where((transaction) {
         final transactionDate = transaction.created_at;
-        return transactionDate.isAtSameMomentAs(monthStart) ||
-            (transactionDate.isAfter(monthStart) &&
-                transactionDate.isBefore(monthEnd));
+        return (transactionDate.isAfter(monthStart) || 
+                transactionDate.isAtSameMomentAs(monthStart)) &&
+               (transactionDate.isBefore(monthEnd) || 
+                transactionDate.isAtSameMomentAs(monthEnd));
       }).toList();
     } else if (selectedView == 'yearly') {
-      final now = DateTime.now();
-      final year = now.year + yearOffset;
+      // Calculate the actual year based on offsets
+      final year = DateTime.now().year + yearOffset;
+      
+      // Get start and end of year
       final yearStart = DateTime(year, 1, 1);
       final yearEnd = DateTime(year, 12, 31, 23, 59, 59, 999);
 
       return categoryTransactions.where((transaction) {
         final transactionDate = transaction.created_at;
-        return transactionDate.isAtSameMomentAs(yearStart) ||
-            (transactionDate.isAfter(yearStart) &&
-                transactionDate.isBefore(yearEnd));
+        return (transactionDate.isAfter(yearStart) || 
+                transactionDate.isAtSameMomentAs(yearStart)) &&
+               (transactionDate.isBefore(yearEnd) || 
+                transactionDate.isAtSameMomentAs(yearEnd));
       }).toList();
     }
 
@@ -163,7 +182,6 @@ class CategoryTransactionList extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        // SIMPLIFIED VERSION - just use Column since parent handles scrolling
         Column(
           children: List.generate(sortedDates.length, (dateIndex) {
             final date = sortedDates[dateIndex];
@@ -207,7 +225,7 @@ class CategoryTransactionList extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            'Ksh ${dailyCashflow.toStringAsFixed(2)}',
+                            'Ksh ${NumberFormat('#,##0.00').format(dailyCashflow)}',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -261,7 +279,7 @@ class CategoryTransactionList extends StatelessWidget {
                           style: const TextStyle(fontSize: 12),
                         ),
                         trailing: Text(
-                          'Ksh ${transaction.transaction_amount.toStringAsFixed(2)}',
+                          'Ksh ${NumberFormat('#,##0.00').format(transaction.transaction_amount)}',
                           style: TextStyle(
                             color: transaction.transaction_type == 'income'
                                 ? Colors.green

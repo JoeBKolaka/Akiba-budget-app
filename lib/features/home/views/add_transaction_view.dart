@@ -37,10 +37,10 @@ class _AddTransactionViewState extends State<AddTransactionView> {
   void createNewTransaction() async {
     CurrencyPicked user = context.read<CurrencyCubit>().state as CurrencyPicked;
     String amountText = _amountController.text
-          .replaceAll('Ksh', '')
-          .replaceAll(',', '')
-          .trim();
-      double amount = double.tryParse(amountText) ?? 0.0;
+        .replaceAll('Ksh', '')
+        .replaceAll(',', '')
+        .trim();
+    double amount = double.tryParse(amountText) ?? 0.0;
     await context.read<TransactionCubit>().createTransaction(
       user_id: user.user.id,
       category_id: _selectedCategoryId!,
@@ -107,9 +107,7 @@ class _AddTransactionViewState extends State<AddTransactionView> {
       ),
       body: BlocConsumer<TransactionCubit, TransactionState>(
         listener: (context, state) {
-          // TODO: implement listener
           if (state is TransactionStateLoaded) {
-            // Navigate back on success
             Navigator.pop(context, HomeView());
           }
         },

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_currency_text_input_formatter/flutter_currency_text_input_formatter.dart';
+import 'package:flutter/services.dart';
 
 class AmmountTextfield extends StatefulWidget {
   final TextEditingController? controller;
@@ -11,57 +12,26 @@ class AmmountTextfield extends StatefulWidget {
 
 class _AmmountTextfieldState extends State<AmmountTextfield> {
   late TextEditingController _amountController;
-  final NumberFormat _currencyFormat = NumberFormat.currency(
-    locale: 'en_KE',
-    symbol: 'Ksh',
-    decimalDigits: 2,
-  );
-  double _amount = 0.0;
+  late FlutterCurrencyTextInputFormatter _formatter;
 
   @override
   void initState() {
     super.initState();
     _amountController = widget.controller ?? TextEditingController();
-    if (widget.controller == null) {
-      _amountController.text = _currencyFormat.format(_amount);
-    }
-  }
-
-  void _onAmountChanged(String value) {
-    String cleanValue = value
-        .replaceAll('Ksh', '')
-        .replaceAll(',', '')
-        .replaceAll(' ', '')
-        .trim();
-
-    if (cleanValue.isEmpty) {
-      setState(() {
-        _amount = 0.0;
-        _amountController.text = _currencyFormat.format(_amount);
-      });
-      return;
-    }
-
-    try {
-      final parsed = double.tryParse(cleanValue) ?? 0.0;
-      setState(() {
-        _amount = parsed;
-      });
-
-      final cursorPosition = _amountController.selection.baseOffset;
-      final formatted = _currencyFormat.format(parsed);
-
-      int newPosition = cursorPosition;
-      if (cursorPosition > formatted.length) {
-        newPosition = formatted.length;
-      }
-
-      _amountController.value = _amountController.value.copyWith(
-        text: formatted,
-        selection: TextSelection.collapsed(offset: newPosition),
-      );
-    } catch (e) {
-      print('Error parsing amount: $e');
+    
+    _formatter = FlutterCurrencyTextInputFormatter(
+      maxDecimalDigits: 2,
+      decimalSeparator: '.', // Use dot for decimal
+      thousandSeparator: ',', // Use comma for thousand separator
+      leadingSymbol: 'Ksh ', // Use Ksh as leading symbol
+    );
+    
+    // Set initial value to 0.00
+    if (_amountController.text.isEmpty) {
+      _amountController.text = _formatter.formatEditUpdate(
+        TextEditingValue.empty,
+        const TextEditingValue(text: '0.00'),
+      ).text;
     }
   }
 
@@ -75,11 +45,11 @@ class _AmmountTextfieldState extends State<AmmountTextfield> {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return TextFormField(
       controller: _amountController,
-      onChanged: _onAmountChanged,
       textAlign: TextAlign.center,
       keyboardType: TextInputType.numberWithOptions(decimal: true),
+      inputFormatters: [_formatter],
       style: const TextStyle(
         fontSize: 32,
         fontWeight: FontWeight.w400,

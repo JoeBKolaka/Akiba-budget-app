@@ -66,11 +66,10 @@ class _CategoryStatisticsState extends State<CategoryStatistics> {
             );
           }
 
-          // Wrap entire content in SingleChildScrollView
+          
           return SingleChildScrollView(
             child: Column(
               children: [
-                // Remove AspectRatio and use fixed height or constraint
                 SizedBox(
                   height: MediaQuery.of(context).size.height * 0.45,
                   child: CategorPie(
@@ -85,11 +84,11 @@ class _CategoryStatisticsState extends State<CategoryStatistics> {
                         weekOffset = week;
                         monthOffset = month;
                         yearOffset = year;
-                      });
+             });
                     },
                   ),
                 ),
-                // Remove Expanded and just show the list
+               
                 CategoryTransactionList(
                   categoryId: widget.categoryId,
                   selectedView: _selectedView,
@@ -105,3 +104,4 @@ class _CategoryStatisticsState extends State<CategoryStatistics> {
     );
   }
 }
+         

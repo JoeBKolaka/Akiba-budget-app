@@ -10,7 +10,6 @@ part 'transaction_state.dart';
 
 class TransactionCubit extends Cubit<TransactionState> {
   TransactionCubit() : super(TransactionStateInitial()) {
-    // Load transactions immediately when cubit is created
     _init();
   }
 
@@ -19,12 +18,12 @@ class TransactionCubit extends Cubit<TransactionState> {
   final AccountLocalRepository _accountLocalRepository = AccountLocalRepository();
   final Uuid _uuid = Uuid();
 
-  // Public getters for repositories
+  
   TransactionLocalRepository get transactionLocalRepository => _transactionLocalRepository;
   CategoryLocalRepository get categoryLocalRepository => _categoryLocalRepository;
   AccountLocalRepository get accountLocalRepository => _accountLocalRepository;
 
-  // Private initialization
+  
   Future<void> _init() async {
     await loadTransactions();
   }
@@ -172,6 +171,147 @@ class TransactionCubit extends Cubit<TransactionState> {
     } catch (e) {
       print('Error getting transactions by category and date range: $e');
       return [];
+    }
+  }
+
+  Future<List<TransactionModel>> getTransactionsByAccountId(String accountId) async {
+    try {
+      final allTransactions = await _transactionLocalRepository.getTransactions();
+      final accountTransactions = allTransactions
+          .where((transaction) => transaction.account_id == accountId)
+          .toList();
+      return accountTransactions;
+    } catch (e) {
+      print('Error getting transactions by account: $e');
+      return [];
+    }
+  }
+
+  Future<List<TransactionModel>> getTransactionsByAccountAndDateRange(
+    String accountId, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    try {
+      final allTransactions = await _transactionLocalRepository.getTransactions();
+      
+      List<TransactionModel> filteredTransactions = allTransactions
+          .where((transaction) => transaction.account_id == accountId)
+          .toList();
+
+      if (startDate != null) {
+        filteredTransactions = filteredTransactions
+            .where((transaction) => 
+                transaction.created_at.isAfter(startDate) || 
+                transaction.created_at.isAtSameMomentAs(startDate))
+            .toList();
+      }
+
+      if (endDate != null) {
+        filteredTransactions = filteredTransactions
+            .where((transaction) => 
+                transaction.created_at.isBefore(endDate) || 
+                transaction.created_at.isAtSameMomentAs(endDate))
+            .toList();
+      }
+
+      return filteredTransactions;
+    } catch (e) {
+      print('Error getting transactions by account and date range: $e');
+      return [];
+    }
+  }
+
+  Future<Map<String, double>> getAccountTotalsByDateRange(
+    String accountId,
+    DateTime startDate,
+    DateTime endDate,
+  ) async {
+    try {
+      return await _transactionLocalRepository.getAccountTotalsByDateRange(
+        accountId,
+        startDate,
+        endDate,
+      );
+    } catch (e) {
+      print('Error getting account totals: $e');
+      return {
+        'income': 0.0,
+        'expense': 0.0,
+        'net': 0.0,
+      };
+    }
+  }
+
+  // THE KEY METHOD: Gets both barchart data AND transactions for the same date range
+  Future<Map<String, dynamic>> getAccountDataForBarchart(
+    String accountId,
+    String viewType,
+    int weekOffset,
+    int monthOffset,
+    int yearOffset,
+  ) async {
+    try {
+      DateTime startDate;
+      DateTime endDate;
+      final now = DateTime.now();
+
+      // Calculate date range based on view type and offsets
+      if (viewType == 'weekly') {
+        final baseDate = now.add(Duration(days: 7 * weekOffset));
+        startDate = baseDate.subtract(Duration(days: baseDate.weekday - 1));
+        endDate = startDate.add(const Duration(days: 6));
+      } else if (viewType == 'monthly') {
+        startDate = DateTime(now.year, now.month + monthOffset, 1);
+        endDate = DateTime(startDate.year, startDate.month + 1, 0);
+      } else if (viewType == 'yearly') {
+        final year = now.year + yearOffset;
+        startDate = DateTime(year, 1, 1);
+        endDate = DateTime(year, 12, 31);
+      } else {
+        // All time - last 12 months
+        endDate = now;
+        startDate = now.subtract(const Duration(days: 365));
+      }
+
+      // Get barchart data
+      Map<DateTime, double> barchartData;
+      if (viewType == 'weekly' || viewType == 'monthly') {
+        barchartData = await _transactionLocalRepository.getDailyAccountTotals(
+          accountId,
+          startDate,
+          endDate,
+        );
+      } else {
+        barchartData = await _transactionLocalRepository.getMonthlyAccountTotals(
+          accountId,
+          startDate,
+          endDate,
+        );
+      }
+
+      // Get transactions for the SAME account and SAME date range
+      final transactions = await getTransactionsByAccountAndDateRange(
+        accountId,
+        startDate: startDate,
+        endDate: endDate,
+      );
+
+      // Return everything needed
+      return {
+        'barchartData': barchartData,
+        'transactions': transactions,
+        'startDate': startDate,
+        'endDate': endDate,
+      };
+    } catch (e) {
+      print('Error getting account data for barchart: $e');
+      return {
+        'barchartData': {},
+        'transactions': [],
+        'startDate': DateTime.now(),
+        'endDate': DateTime.now(),
+      };
     }
   }
 }

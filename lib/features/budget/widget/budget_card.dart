@@ -3,7 +3,6 @@ import 'package:akiba/features/category/cubit/add_new_category_cubit.dart';
 import 'package:akiba/features/home/cubit/transaction_cubit.dart';
 import 'package:akiba/models/budget_model.dart';
 import 'package:akiba/theme/pallete.dart';
-import 'package:akiba/utils/budget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -58,30 +57,37 @@ class _BudgetCardState extends State<BudgetCard> {
   }
 
   void _loadBudgets() async {
-    final budgets = await context
-        .read<BudgetCubit>()
-        .budgetLocalRepository
-        .getBudgets();
-    final categories = await context
-        .read<BudgetCubit>()
-        .categoryLocalRepository
-        .getCategories();
+    // Check if widget is mounted before accessing context
+    if (!mounted) return;
 
-    // Load spending data for each budget
-    final spendingData = <String, Map<String, double>>{};
-    for (var budget in budgets) {
-      final spending = await context
+    try {
+      final budgets = await context
           .read<BudgetCubit>()
-          .getBudgetSpending(budget.category_id);
-      spendingData[budget.id] = spending;
-    }
+          .budgetLocalRepository
+          .getBudgets();
+      final categories = await context
+          .read<BudgetCubit>()
+          .categoryLocalRepository
+          .getCategories();
 
-    if (mounted) {
-      setState(() {
-        _budgets = budgets;
-        _categories = categories;
-        _spendingData = spendingData;
-      });
+      final spendingData = <String, Map<String, double>>{};
+      for (var budget in budgets) {
+        if (!mounted) return; // Check again before async operation
+        final spending = await context.read<BudgetCubit>().getBudgetSpending(
+          budget.category_id,
+        );
+        spendingData[budget.id] = spending;
+      }
+
+      if (mounted) {
+        setState(() {
+          _budgets = budgets;
+          _categories = categories;
+          _spendingData = spendingData;
+        });
+      }
+    } catch (e) {
+      // Handle error
     }
   }
 
@@ -135,11 +141,13 @@ class _BudgetCardState extends State<BudgetCard> {
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
-            childAspectRatio: 0.8,
+            childAspectRatio: 0.9, // Increased from 0.8 to 0.9 to fix overflow
           ),
           itemCount: _budgets.length,
           itemBuilder: (context, index) {
@@ -149,89 +157,111 @@ class _BudgetCardState extends State<BudgetCard> {
             final spent = _getSpentAmount(budget, periodKey);
             final remaining = budget.budget_amount - spent;
             final isOverspent = spent > budget.budget_amount;
-        
-            return ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 160, maxHeight: 240),
-              child: Card(
-                color: Pallete.whiteColor,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  side: const BorderSide(color: Pallete.greyColor, width: 1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          CircleAvatar(
-                            backgroundColor:
-                                category != null ? category.color : Colors.grey,
-                            child: Center(
-                              child: Text(
-                                category?.emoji ?? '💰',
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
+            final overspentAmount = spent - budget.budget_amount;
+
+            return Card(
+              color: Pallete.whiteColor,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                side: const BorderSide(color: Pallete.greyColor, width: 1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(12), // Reduced from 16 to 12
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: category != null
+                              ? category.color
+                              : Colors.grey,
+                          radius: 14, // Reduced from 20 to 14
+                          child: Center(
                             child: Text(
-                              category?.name ?? 'Sijui',
+                              category?.emoji ?? '💰',
                               style: const TextStyle(
-                                color: Colors.black87,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              overflow: TextOverflow.ellipsis,
+                                fontSize: 12,
+                              ), // Reduced from 16
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Spent: $spent',
+                        ),
+                        const SizedBox(width: 6), // Reduced from 8
+                        Expanded(
+                          child: Text(
+                            category?.name ?? 'Sijui',
                             style: const TextStyle(
                               color: Colors.black87,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Budget: ${budget.budget_amount}',
-                            style: const TextStyle(
-                              color: Colors.black87,
-                              fontSize: 14,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            isOverspent
-                                ? 'Overspent: ${spent - budget.budget_amount}'
-                                : 'Left: $remaining',
-                            style: TextStyle(
-                              color: isOverspent ? Colors.red : Colors.green,
-                              fontSize: 13,
+                              fontSize: 12, // Reduced from 14
                               fontWeight: FontWeight.w600,
                             ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
-                          const SizedBox(height: 4),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Spent: ${spent.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                              color: Colors.black87,
+                              fontSize: 12, // Reduced from 14
+                            ),
+                          ),
+                          Text(
+                            'Budget: ${budget.budget_amount.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                              color: Colors.black87,
+                              fontSize: 12, // Reduced from 14
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                isOverspent ? 'Overspent' : 'Left',
+                                style: TextStyle(
+                                  color: isOverspent
+                                      ? Colors.red
+                                      : Colors.green,
+                                  fontSize: 10, // Reduced from 12
+                                ),
+                              ),
+                              Text(
+                                isOverspent
+                                    ? overspentAmount.toStringAsFixed(0)
+                                    : remaining.toStringAsFixed(0),
+                                style: TextStyle(
+                                  color: isOverspent
+                                      ? Colors.red
+                                      : Colors.green,
+                                  fontSize: 14, // Reduced from 16
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
                           Text(
                             _calculateDaysLeft(budget),
                             style: const TextStyle(
                               color: Colors.black54,
-                              fontSize: 13,
+                              fontSize: 10, // Reduced from 13
                             ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             );

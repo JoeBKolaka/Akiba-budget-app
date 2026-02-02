@@ -1,11 +1,18 @@
-import 'package:akiba/features/account/cubit/account_cubit.dart';
-import 'package:akiba/features/home/cubit/transaction_cubit.dart';
-import 'package:akiba/models/account_model.dart';
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:akiba/features/account/views/account_statistics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:akiba/features/account/cubit/account_cubit.dart';
+import 'package:akiba/features/home/cubit/transaction_cubit.dart';
+import 'package:akiba/models/account_model.dart';
+
 class AccountList extends StatefulWidget {
-  const AccountList({super.key});
+  final Function(String accountId, String accountName)? onAccountSelected;
+  const AccountList({
+    Key? key,
+    required this.onAccountSelected,
+  }) : super(key: key);
 
   @override
   State<AccountList> createState() => _AccountListState();
@@ -84,6 +91,25 @@ class _AccountListState extends State<AccountList> {
             ),
             title: Text(account.account_name),
             trailing: Text('Ksh ${account.ammount.toStringAsFixed(2)}'),
+            onTap: () {
+              // Call the callback if provided
+              widget.onAccountSelected?.call(
+                account.id,
+                account.account_name ,
+              );
+             
+
+              // Navigate to CategoryStatistics with all required parameters
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AccountStatistics(
+                    accountId: account.id,
+                    accountName: account.account_name,
+                  ),
+                ),
+              );
+            },
           );
         },
       ),

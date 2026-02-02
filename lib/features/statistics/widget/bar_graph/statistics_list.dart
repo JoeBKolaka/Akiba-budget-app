@@ -8,7 +8,7 @@ import '../../../../models/transaction_model.dart';
 
 class StatisticsList extends StatefulWidget {
   final Function(String categoryId, String categoryName, String categoryEmoji)?
-  onCategorySelected;
+      onCategorySelected;
   final DateTime selectedDate;
   final String viewType;
   final Map<String, dynamic> offsets;
@@ -38,15 +38,17 @@ class _StatisticsListState extends State<StatisticsList> {
   void _loadData() async {
     final cubit = context.read<TransactionCubit>();
 
-    // Get transactions from cubit state instead of repository directly
+   
     if (cubit.state is TransactionStateLoaded) {
       final loadedState = cubit.state as TransactionStateLoaded;
-      setState(() {
-        _transactions = loadedState.transactions;
-      });
+      if (mounted) {
+        setState(() {
+          _transactions = loadedState.transactions;
+        });
+      }
     }
 
-    // Still get categories from repository
+    
     final categories = await cubit.categoryLocalRepository.getCategories();
 
     if (mounted) {
@@ -82,44 +84,72 @@ class _StatisticsListState extends State<StatisticsList> {
 
     switch (widget.viewType) {
       case 'weekly':
-        // Calculate the actual week start date based on offsets
+        // Calculate the week start date based on offsets
         final baseDate = widget.selectedDate;
-        final weekStart = baseDate
-            .subtract(Duration(days: baseDate.weekday - 1))
-            .add(Duration(days: 7 * weekOffset));
-        final endOfWeek = weekStart.add(const Duration(days: 6));
+        
+        // Get the start of the week (Monday)
+        final weekStart = _getStartOfWeek(baseDate).add(Duration(days: 7 * weekOffset));
+        
+        // Get the end of the week (Sunday 23:59:59.999)
+        final weekEnd = weekStart.add(const Duration(days: 6, hours: 23, minutes: 59, seconds: 59, milliseconds: 999));
 
         return _transactions.where((transaction) {
-          return transaction.created_at.isAtSameMomentAs(weekStart) ||
-              (transaction.created_at.isAfter(weekStart) &&
-                  transaction.created_at.isBefore(
-                    endOfWeek.add(const Duration(days: 1)),
-                  ));
+          final transactionDate = transaction.created_at;
+          return (transactionDate.isAfter(weekStart) || 
+                  transactionDate.isAtSameMomentAs(weekStart)) &&
+                 (transactionDate.isBefore(weekEnd) || 
+                  transactionDate.isAtSameMomentAs(weekEnd));
         }).toList();
 
       case 'monthly':
         // Calculate the actual month based on offsets
-        final monthDate = DateTime(
-          widget.selectedDate.year,
-          widget.selectedDate.month + monthOffset,
-        );
+        final month = widget.selectedDate.month + monthOffset;
+        final year = widget.selectedDate.year;
+        
+        // Adjust for year overflow/underflow
+        final actualYear = year + (month - 1) ~/ 12;
+        final actualMonth = ((month - 1) % 12) + 1;
+        
+        // Get start and end of month
+        final monthStart = DateTime(actualYear, actualMonth, 1);
+        final monthEnd = DateTime(actualYear, actualMonth + 1, 0, 23, 59, 59, 999);
 
         return _transactions.where((transaction) {
-          return transaction.created_at.year == monthDate.year &&
-              transaction.created_at.month == monthDate.month;
+          final transactionDate = transaction.created_at;
+          return (transactionDate.isAfter(monthStart) || 
+                  transactionDate.isAtSameMomentAs(monthStart)) &&
+                 (transactionDate.isBefore(monthEnd) || 
+                  transactionDate.isAtSameMomentAs(monthEnd));
         }).toList();
 
       case 'yearly':
         // Calculate the actual year based on offsets
         final year = widget.selectedDate.year + yearOffset;
+        
+        // Get start and end of year
+        final yearStart = DateTime(year, 1, 1);
+        final yearEnd = DateTime(year, 12, 31, 23, 59, 59, 999);
 
         return _transactions.where((transaction) {
-          return transaction.created_at.year == year;
+          final transactionDate = transaction.created_at;
+          return (transactionDate.isAfter(yearStart) || 
+                  transactionDate.isAtSameMomentAs(yearStart)) &&
+                 (transactionDate.isBefore(yearEnd) || 
+                  transactionDate.isAtSameMomentAs(yearEnd));
         }).toList();
 
       default:
         return _transactions;
     }
+  }
+
+  // Helper function to get start of week (Monday)
+  DateTime _getStartOfWeek(DateTime date) {
+    // Monday is 1, Sunday is 7
+    final dayOfWeek = date.weekday;
+    // Calculate days to subtract to get to Monday
+    final daysToSubtract = dayOfWeek - 1;
+    return DateTime(date.year, date.month, date.day - daysToSubtract);
   }
 
   Map<String, int> _getTransactionCountsByCategory() {
@@ -140,9 +170,11 @@ class _StatisticsListState extends State<StatisticsList> {
       listener: (context, state) {
         if (state is TransactionStateLoaded) {
           // Update transactions when loaded
-          setState(() {
-            _transactions = state.transactions;
-          });
+          if (mounted) {
+            setState(() {
+              _transactions = state.transactions;
+            });
+          }
         }
       },
       builder: (context, state) {
@@ -181,12 +213,15 @@ class _StatisticsListState extends State<StatisticsList> {
     final totalTransactions = filteredTransactions.length;
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
-        Text(
-          'Number of Transactions ($totalTransactions)',
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-          textAlign: TextAlign.start,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            'Number of Transactions ($totalTransactions)',
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          ),
         ),
         const SizedBox(height: 16),
         Expanded(
@@ -194,7 +229,7 @@ class _StatisticsListState extends State<StatisticsList> {
               ? const Center(child: Text('No transactions for this period'))
               : ListView.builder(
                   shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
+                  physics: const ClampingScrollPhysics(),
                   itemCount: categoryCounts.length,
                   itemBuilder: (context, index) {
                     final categoryId = categoryCounts.keys.elementAt(index);
@@ -232,7 +267,7 @@ class _StatisticsListState extends State<StatisticsList> {
                           category?.emoji ?? '💰',
                         );
 
-                        // Navigate to CategoryStatistics with all required parameters
+                       
                         Navigator.push(
                           context,
                           MaterialPageRoute(

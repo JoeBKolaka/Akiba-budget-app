@@ -62,12 +62,9 @@ class _AddBudgetState extends State<AddBudget> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      body: BlocListener<BudgetCubit
-      , BudgetState>(
+      body: BlocListener<BudgetCubit, BudgetState>(
         listener: (context, state) {
-          // TODO: implement listener
           if (state is BudgetStateAdd) {
-            // Navigate back on success
             Navigator.pop(context, BudgetView());
           }
         },

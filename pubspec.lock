@@ -153,6 +153,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.0"
+  currency_textfield:
+    dependency: "direct main"
+    description:
+      name: currency_textfield
+      sha256: "3ecfad8f3c36c3384547446d883eee8710737bb476ca97c0318484f06d49e729"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.0.0+1"
   dart_style:
     dependency: transitive
     description:
@@ -262,6 +270,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "9.1.1"
+  flutter_currency_text_input_formatter:
+    dependency: "direct main"
+    description:
+      name: flutter_currency_text_input_formatter
+      sha256: "67ffecf867bed20e944b818837f30fe13dfa0d82018d28304fcc925333f9d7a4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -408,6 +424,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.17.0"
+  money_formatter:
+    dependency: "direct main"
+    description:
+      name: money_formatter
+      sha256: "5570b152001798f52423fc2e87390e7d7141d6e58d83c5e21c289debb9c7b654"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.7"
   money_input_formatter:
     dependency: "direct main"
     description:

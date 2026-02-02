@@ -1,123 +1,375 @@
+import 'package:akiba/features/home/cubit/transaction_cubit.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:akiba/features/budget/cubit/budget_cubit.dart';
+import 'package:akiba/features/category/cubit/add_new_category_cubit.dart';
+import 'package:akiba/models/budget_model.dart';
+import 'package:akiba/models/category_model.dart';
 import '../../../../theme/pallete.dart';
 
-class CategorPie extends StatefulWidget {
-  const CategorPie({super.key});
+class BudgetPie extends StatefulWidget {
+  const BudgetPie({super.key});
 
   @override
-  State<CategorPie> createState() => _CategorPieState();
+  State<BudgetPie> createState() => _BudgetPieState();
 }
 
-class _CategorPieState extends State<CategorPie> {
-  String _selectedView = 'allTime';
-  String dateRange = 'All Time';
+class _BudgetPieState extends State<BudgetPie> {
+  String _selectedView = 'daily';
+  late List<BudgetModel> _budgets = [];
+  late List<CategoryModel> _categories = [];
+  Map<String, Map<String, double>> _spendingData = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBudgets();
+  }
+
+  void _loadBudgets() async {
+    final budgets = await context
+        .read<BudgetCubit>()
+        .budgetLocalRepository
+        .getBudgets();
+    final categories = await context
+        .read<BudgetCubit>()
+        .categoryLocalRepository
+        .getCategories();
+
+    final spendingData = <String, Map<String, double>>{};
+    for (var budget in budgets) {
+      final spending = await context.read<BudgetCubit>().getBudgetSpending(
+        budget.category_id,
+      );
+      spendingData[budget.id] = spending;
+    }
+
+    if (mounted) {
+      setState(() {
+        _budgets = budgets;
+        _categories = categories;
+        _spendingData = spendingData;
+      });
+    }
+  }
+
+  CategoryModel? _getCategoryForBudget(String categoryId) {
+    try {
+      return _categories.firstWhere((category) => category.id == categoryId);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  double _getMeanForPeriod(BudgetModel budget, String period) {
+    final budgetAmount = budget.budget_amount;
+
+    switch (period) {
+      case 'daily':
+        final budgetRepetition = budget.repetition;
+        if (budgetRepetition == '0') {
+          return budgetAmount;
+        } else if (budgetRepetition == '1') {
+          return budgetAmount / 7;
+        } else if (budgetRepetition == '2') {
+          return budgetAmount / 30;
+        } else if (budgetRepetition == '3') {
+          return budgetAmount / 365;
+        }
+        return budgetAmount;
+
+      case 'weekly':
+        final budgetRepetition = budget.repetition;
+        if (budgetRepetition == '0') {
+          return budgetAmount * 7;
+        } else if (budgetRepetition == '1') {
+          return budgetAmount;
+        } else if (budgetRepetition == '2') {
+          return budgetAmount / 4;
+        } else if (budgetRepetition == '3') {
+          return budgetAmount / 52;
+        }
+        return budgetAmount;
+
+      case 'monthly':
+        final budgetRepetition = budget.repetition;
+        if (budgetRepetition == '0') {
+          return budgetAmount * 30;
+        } else if (budgetRepetition == '1') {
+          return budgetAmount * 4;
+        } else if (budgetRepetition == '2') {
+          return budgetAmount;
+        } else if (budgetRepetition == '3') {
+          return budgetAmount / 12;
+        }
+        return budgetAmount;
+
+      case 'yearly':
+        final budgetRepetition = budget.repetition;
+        if (budgetRepetition == '0') {
+          return budgetAmount * 365;
+        } else if (budgetRepetition == '1') {
+          return budgetAmount * 52;
+        } else if (budgetRepetition == '2') {
+          return budgetAmount * 12;
+        } else if (budgetRepetition == '3') {
+          return budgetAmount;
+        }
+        return budgetAmount;
+
+      default:
+        return budgetAmount;
+    }
+  }
+
+  List<PieChartSectionData> _getPieSections() {
+    final sections = <PieChartSectionData>[];
+    final defaultColors = [
+      Colors.blue,
+      Colors.green,
+      Colors.orange,
+      Colors.purple,
+      Colors.red,
+      Colors.teal,
+      Colors.pink,
+      Colors.indigo,
+      Colors.amber,
+      Colors.cyan,
+    ];
+
+    for (int i = 0; i < _budgets.length; i++) {
+      final budget = _budgets[i];
+      final category = _getCategoryForBudget(budget.category_id);
+
+      final meanAmount = _getMeanForPeriod(budget, _selectedView);
+
+      if (meanAmount > 0) {
+        Color sectionColor;
+        if (category != null && category.color != null) {
+          sectionColor = category.color!;
+        } else {
+          sectionColor = defaultColors[i % defaultColors.length];
+        }
+
+        String categoryName = 'Cat';
+        if (category != null &&
+            category.name != null &&
+            category.name!.isNotEmpty) {
+          categoryName = category.name!.substring(
+            0,
+            category.name!.length > 4 ? 4 : category.name!.length,
+          );
+        }
+
+        sections.add(
+          PieChartSectionData(
+            value: meanAmount,
+            color: sectionColor,
+            radius: 15,
+            title: '${meanAmount.toStringAsFixed(0)}\n$categoryName',
+            titleStyle: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        );
+      }
+    }
+
+    if (sections.isEmpty) {
+      sections.add(
+        PieChartSectionData(
+          value: 1,
+          color: Pallete.greyColor,
+          radius: 15,
+          title: 'No\nBudgets',
+          titleStyle: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      );
+    }
+
+    return sections;
+  }
+
+  String _getPeriodTitle(String period) {
+    switch (period) {
+      case 'daily':
+        return 'Daily Allocation';
+      case 'weekly':
+        return 'Weekly Allocation';
+      case 'monthly':
+        return 'Monthly Allocation';
+      case 'yearly':
+        return 'Yearly Allocation';
+      default:
+        return 'Budget Allocation';
+    }
+  }
+
+  String _getPeriodSubtitle(String period) {
+    switch (period) {
+      case 'daily':
+        return 'Mean daily amount for each budget';
+      case 'weekly':
+        return 'Mean weekly amount for each budget';
+      case 'monthly':
+        return 'Mean monthly amount for each budget';
+      case 'yearly':
+        return 'Mean yearly amount for each budget';
+      default:
+        return 'Budget allocation breakdown';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Pallete.whiteColor,
-      margin: const EdgeInsets.all(10.0),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Cashflow'),
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    setState(() {
-                      _selectedView = value;
-                    });
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'allTime',
-                      child: Text('AllTime'),
-                    ),
-                    const PopupMenuItem(value: 'weekly', child: Text('Weekly')),
-                    const PopupMenuItem(
-                      value: 'monthly',
-                      child: Text('Monthly'),
-                    ),
-                    const PopupMenuItem(value: 'yearly', child: Text('Yearly')),
-                  ],
-                  icon: const Icon(Icons.more_vert),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Stack(
-              children: [
-                PieChart(
-                  PieChartData(
-                    sections: [
-                      PieChartSectionData(
-                        value: 10,
-                        color: Colors.green,
-                        radius: 12,
-                      ),
-                      PieChartSectionData(
-                        value: 12,
-                        color: Colors.red,
-                        radius: 12,
-                      ),
-                    ],
-                    centerSpaceRadius: 100,
-                  ),
-                ),
-                Positioned.fill(
-                  child: Center(
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<BudgetCubit, BudgetState>(
+          listener: (context, state) {
+            if (state is BudgetStateAdd) {
+              _loadBudgets();
+            }
+          },
+        ),
+        BlocListener<CategoryCubit, CategoryState>(
+          listener: (context, state) {
+            _loadBudgets();
+          },
+        ),
+        BlocListener<TransactionCubit, TransactionState>(
+          listener: (context, state) {
+            if (state is TransactionStateLoaded) {
+              _loadBudgets();
+            }
+          },
+        ),
+      ],
+      child: Container(
+        color: Pallete.whiteColor,
+        margin: const EdgeInsets.all(10.0),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Ksh 2,000,000',
-                          style: TextStyle(
-                            fontSize: 20,
+                          _getPeriodTitle(_selectedView),
+                          style: const TextStyle(
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.green,
+                            color: Colors.black87,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
+                        Text(
+                          _getPeriodSubtitle(_selectedView),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                ),
-              ],
+                  PopupMenuButton<String>(
+                    onSelected: (value) {
+                      setState(() {
+                        _selectedView = value;
+                      });
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(value: 'daily', child: Text('Daily')),
+                      const PopupMenuItem(
+                        value: 'weekly',
+                        child: Text('Weekly'),
+                      ),
+                      const PopupMenuItem(
+                        value: 'monthly',
+                        child: Text('Monthly'),
+                      ),
+                      const PopupMenuItem(
+                        value: 'yearly',
+                        child: Text('Yearly'),
+                      ),
+                    ],
+                    icon: const Icon(Icons.more_vert),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  onPressed: () {
-                    setState(() {
-                      // Handle backward navigation
-                    });
-                  },
-                  icon: const Icon(Icons.arrow_back),
-                ),
-                Text(dateRange),
-                IconButton(
-                  onPressed: () {
-                    setState(() {
-                      // Handle forward navigation
-                    });
-                  },
-                  icon: const Icon(Icons.arrow_forward),
-                ),
-              ],
+            Expanded(
+              child: Stack(
+                children: [
+                  PieChart(
+                    PieChartData(
+                      sections: _getPieSections(),
+                      centerSpaceRadius: 100,
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Total',
+                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                          ),
+                          Text(
+                            '${_getTotalMeanForPeriod().toStringAsFixed(0)}',
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _selectedView == 'daily'
+                                ? 'per day'
+                                : _selectedView == 'weekly'
+                                ? 'per week'
+                                : _selectedView == 'monthly'
+                                ? 'per month'
+                                : 'per year',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  double _getTotalMeanForPeriod() {
+    double total = 0;
+    for (var budget in _budgets) {
+      total += _getMeanForPeriod(budget, _selectedView);
+    }
+    return total;
   }
 }

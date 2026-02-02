@@ -323,4 +323,156 @@ class TransactionLocalRepository {
     }
     return null;
   }
+  
+
+Future<List<TransactionModel>> getTransactionsByAccountId(String accountId) async {
+  final db = await database;
+  final results = await db.query(
+    tableName,
+    where: 'account_id = ?',
+    whereArgs: [accountId],
+    orderBy: 'created_at DESC',
+  );
+
+  if (results.isNotEmpty) {
+    List<TransactionModel> transactions = [];
+    for (final elem in results) {
+      transactions.add(TransactionModel.fromMap(elem));
+    }
+    return transactions;
+  }
+  return [];
+}
+
+Future<List<TransactionModel>> getTransactionsByAccountAndDateRange(
+  String accountId,
+  DateTime startDate,
+  DateTime endDate,
+) async {
+  final db = await database;
+  final startTimestamp = startDate.millisecondsSinceEpoch;
+  final endTimestamp = endDate.millisecondsSinceEpoch;
+
+  final results = await db.query(
+    tableName,
+    where: 'account_id = ? AND created_at BETWEEN ? AND ?',
+    whereArgs: [accountId, startTimestamp, endTimestamp],
+    orderBy: 'created_at ASC',
+  );
+
+  if (results.isNotEmpty) {
+    List<TransactionModel> transactions = [];
+    for (final elem in results) {
+      transactions.add(TransactionModel.fromMap(elem));
+    }
+    return transactions;
+  }
+  return [];
+}
+
+// Get total income/expense for an account in date range
+Future<Map<String, double>> getAccountTotalsByDateRange(
+  String accountId,
+  DateTime startDate,
+  DateTime endDate,
+) async {
+  final db = await database;
+  final startTimestamp = startDate.millisecondsSinceEpoch;
+  final endTimestamp = endDate.millisecondsSinceEpoch;
+
+  final incomeResult = await db.rawQuery('''
+    SELECT SUM(transaction_amount) as total
+    FROM $tableName 
+    WHERE account_id = ?
+    AND transaction_type = 'income'
+    AND created_at BETWEEN ? AND ?
+  ''', [accountId, startTimestamp, endTimestamp]);
+
+  final expenseResult = await db.rawQuery('''
+    SELECT SUM(transaction_amount) as total
+    FROM $tableName 
+    WHERE account_id = ?
+    AND transaction_type = 'expense'
+    AND created_at BETWEEN ? AND ?
+  ''', [accountId, startTimestamp, endTimestamp]);
+
+  final income = incomeResult.first['total'] as double? ?? 0.0;
+  final expense = expenseResult.first['total'] as double? ?? 0.0;
+
+  return {
+    'income': income,
+    'expense': expense,
+    'net': income - expense,
+  };
+}
+
+// Get daily transactions for an account
+Future<Map<DateTime, double>> getDailyAccountTotals(
+  String accountId,
+  DateTime startDate,
+  DateTime endDate,
+) async {
+  final db = await database;
+  final startTimestamp = startDate.millisecondsSinceEpoch;
+  final endTimestamp = endDate.millisecondsSinceEpoch;
+
+  final result = await db.rawQuery('''
+    SELECT 
+      date(created_at/1000, 'unixepoch', 'localtime') as day,
+      SUM(CASE WHEN transaction_type = 'income' THEN transaction_amount ELSE 0 END) as income,
+      SUM(CASE WHEN transaction_type = 'expense' THEN transaction_amount ELSE 0 END) as expense
+    FROM $tableName 
+    WHERE account_id = ?
+    AND created_at BETWEEN ? AND ?
+    GROUP BY day
+    ORDER BY day ASC
+  ''', [accountId, startTimestamp, endTimestamp]);
+
+  final dailyTotals = <DateTime, double>{};
+  
+  for (var row in result) {
+    final dayStr = row['day'] as String;
+    final day = DateTime.parse(dayStr);
+    final income = row['income'] as double? ?? 0.0;
+    final expense = row['expense'] as double? ?? 0.0;
+    dailyTotals[day] = income - expense;
+  }
+  
+  return dailyTotals;
+}
+
+// Get monthly transactions for an account
+Future<Map<DateTime, double>> getMonthlyAccountTotals(
+  String accountId,
+  DateTime startDate,
+  DateTime endDate,
+) async {
+  final db = await database;
+  final startTimestamp = startDate.millisecondsSinceEpoch;
+  final endTimestamp = endDate.millisecondsSinceEpoch;
+
+  final result = await db.rawQuery('''
+    SELECT 
+      strftime('%Y-%m', created_at/1000, 'unixepoch', 'localtime') as month,
+      SUM(CASE WHEN transaction_type = 'income' THEN transaction_amount ELSE 0 END) as income,
+      SUM(CASE WHEN transaction_type = 'expense' THEN transaction_amount ELSE 0 END) as expense
+    FROM $tableName 
+    WHERE account_id = ?
+    AND created_at BETWEEN ? AND ?
+    GROUP BY month
+    ORDER BY month ASC
+  ''', [accountId, startTimestamp, endTimestamp]);
+
+  final monthlyTotals = <DateTime, double>{};
+  
+  for (var row in result) {
+    final monthStr = row['month'] as String;
+    final month = DateTime.parse('$monthStr-01');
+    final income = row['income'] as double? ?? 0.0;
+    final expense = row['expense'] as double? ?? 0.0;
+    monthlyTotals[month] = income - expense;
+  }
+  
+  return monthlyTotals;
+}
 }
