@@ -1,5 +1,5 @@
 import 'package:akiba/features/statistics/widget/bar_graph/bar_graph.dart';
-import 'package:akiba/features/statistics/widget/statistics_list.dart';
+import 'package:akiba/features/statistics/widget/bar_graph/statistics_list.dart';
 import 'package:flutter/material.dart';
 
 class Statistics extends StatefulWidget {

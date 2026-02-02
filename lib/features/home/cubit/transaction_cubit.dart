@@ -126,4 +126,52 @@ class TransactionCubit extends Cubit<TransactionState> {
     }
     return [];
   }
+
+  Future<List<TransactionModel>> getTransactionsByCategoryId(String categoryId) async {
+    try {
+      final allTransactions = await _transactionLocalRepository.getTransactions();
+      final categoryTransactions = allTransactions
+          .where((transaction) => transaction.category_id == categoryId)
+          .toList();
+      return categoryTransactions;
+    } catch (e) {
+      print('Error getting transactions by category: $e');
+      return [];
+    }
+  }
+
+  Future<List<TransactionModel>> getTransactionsByCategoryAndDateRange(
+    String categoryId, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    try {
+      final allTransactions = await _transactionLocalRepository.getTransactions();
+      
+      List<TransactionModel> filteredTransactions = allTransactions
+          .where((transaction) => transaction.category_id == categoryId)
+          .toList();
+
+      if (startDate != null) {
+        filteredTransactions = filteredTransactions
+            .where((transaction) => 
+                transaction.created_at.isAfter(startDate) || 
+                transaction.created_at.isAtSameMomentAs(startDate))
+            .toList();
+      }
+
+      if (endDate != null) {
+        filteredTransactions = filteredTransactions
+            .where((transaction) => 
+                transaction.created_at.isBefore(endDate) || 
+                transaction.created_at.isAtSameMomentAs(endDate))
+            .toList();
+      }
+
+      return filteredTransactions;
+    } catch (e) {
+      print('Error getting transactions by category and date range: $e');
+      return [];
+    }
+  }
 }

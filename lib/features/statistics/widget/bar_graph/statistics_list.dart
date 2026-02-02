@@ -1,20 +1,24 @@
 import 'package:akiba/features/home/cubit/transaction_cubit.dart';
+import 'package:akiba/features/statistics/views/category_statistics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../models/category_model.dart';
-import '../../../models/transaction_model.dart';
+import '../../../../models/category_model.dart';
+import '../../../../models/transaction_model.dart';
 
 class StatisticsList extends StatefulWidget {
+  final Function(String categoryId, String categoryName, String categoryEmoji)?
+  onCategorySelected;
   final DateTime selectedDate;
   final String viewType;
   final Map<String, dynamic> offsets;
-  
+
   const StatisticsList({
     super.key,
     required this.selectedDate,
     required this.viewType,
     required this.offsets,
+    this.onCategorySelected,
   });
 
   @override
@@ -24,7 +28,7 @@ class StatisticsList extends StatefulWidget {
 class _StatisticsListState extends State<StatisticsList> {
   List<TransactionModel> _transactions = [];
   List<CategoryModel> _categories = [];
-  
+
   @override
   void initState() {
     super.initState();
@@ -32,19 +36,21 @@ class _StatisticsListState extends State<StatisticsList> {
   }
 
   void _loadData() async {
-    final transactions = await context
-        .read<TransactionCubit>()
-        .transactionLocalRepository
-        .getTransactions();
+    final cubit = context.read<TransactionCubit>();
 
-    final categories = await context
-        .read<TransactionCubit>()
-        .categoryLocalRepository
-        .getCategories();
+    // Get transactions from cubit state instead of repository directly
+    if (cubit.state is TransactionStateLoaded) {
+      final loadedState = cubit.state as TransactionStateLoaded;
+      setState(() {
+        _transactions = loadedState.transactions;
+      });
+    }
+
+    // Still get categories from repository
+    final categories = await cubit.categoryLocalRepository.getCategories();
 
     if (mounted) {
       setState(() {
-        _transactions = transactions;
         _categories = categories;
       });
     }
@@ -54,7 +60,7 @@ class _StatisticsListState extends State<StatisticsList> {
   void didUpdateWidget(StatisticsList oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Reload when offsets or view type changes
-    if (oldWidget.offsets != widget.offsets || 
+    if (oldWidget.offsets != widget.offsets ||
         oldWidget.viewType != widget.viewType) {
       _loadData();
     }
@@ -73,37 +79,40 @@ class _StatisticsListState extends State<StatisticsList> {
     final weekOffset = widget.offsets['weekOffset'] as int? ?? 0;
     final monthOffset = widget.offsets['monthOffset'] as int? ?? 0;
     final yearOffset = widget.offsets['yearOffset'] as int? ?? 0;
-    
+
     switch (widget.viewType) {
       case 'weekly':
         // Calculate the actual week start date based on offsets
         final baseDate = widget.selectedDate;
-        final weekStart = baseDate.subtract(Duration(days: baseDate.weekday - 1))
+        final weekStart = baseDate
+            .subtract(Duration(days: baseDate.weekday - 1))
             .add(Duration(days: 7 * weekOffset));
         final endOfWeek = weekStart.add(const Duration(days: 6));
-        
+
         return _transactions.where((transaction) {
           return transaction.created_at.isAtSameMomentAs(weekStart) ||
-                 (transaction.created_at.isAfter(weekStart) && 
-                  transaction.created_at.isBefore(endOfWeek.add(const Duration(days: 1))));
+              (transaction.created_at.isAfter(weekStart) &&
+                  transaction.created_at.isBefore(
+                    endOfWeek.add(const Duration(days: 1)),
+                  ));
         }).toList();
 
       case 'monthly':
         // Calculate the actual month based on offsets
         final monthDate = DateTime(
-          widget.selectedDate.year, 
-          widget.selectedDate.month + monthOffset
+          widget.selectedDate.year,
+          widget.selectedDate.month + monthOffset,
         );
-        
+
         return _transactions.where((transaction) {
           return transaction.created_at.year == monthDate.year &&
-                 transaction.created_at.month == monthDate.month;
+              transaction.created_at.month == monthDate.month;
         }).toList();
 
       case 'yearly':
         // Calculate the actual year based on offsets
         final year = widget.selectedDate.year + yearOffset;
-        
+
         return _transactions.where((transaction) {
           return transaction.created_at.year == year;
         }).toList();
@@ -127,13 +136,42 @@ class _StatisticsListState extends State<StatisticsList> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<TransactionCubit, TransactionState>(
+    return BlocConsumer<TransactionCubit, TransactionState>(
       listener: (context, state) {
         if (state is TransactionStateLoaded) {
-          _loadData();
+          // Update transactions when loaded
+          setState(() {
+            _transactions = state.transactions;
+          });
         }
       },
-      child: _buildContent(),
+      builder: (context, state) {
+        // Show loading state
+        if (state is TransactionStateLoading && _transactions.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        // Show error state
+        if (state is TransactionStateError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Error: ${state.error}'),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    context.read<TransactionCubit>().loadTransactions();
+                  },
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return _buildContent();
+      },
     );
   }
 
@@ -153,9 +191,7 @@ class _StatisticsListState extends State<StatisticsList> {
         const SizedBox(height: 16),
         Expanded(
           child: categoryCounts.isEmpty
-              ? const Center(
-                  child: Text('No transactions for this period'),
-                )
+              ? const Center(child: Text('No transactions for this period'))
               : ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -189,7 +225,24 @@ class _StatisticsListState extends State<StatisticsList> {
                         ),
                       ),
                       onTap: () {
-                        
+                        // Call the callback if provided
+                        widget.onCategorySelected?.call(
+                          categoryId,
+                          category?.name ?? 'Unknown',
+                          category?.emoji ?? '💰',
+                        );
+
+                        // Navigate to CategoryStatistics with all required parameters
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CategoryStatistics(
+                              categoryId: categoryId,
+                              categoryName: category?.name ?? 'Unknown',
+                              categoryEmoji: category?.emoji ?? '💰',
+                            ),
+                          ),
+                        );
                       },
                     );
                   },

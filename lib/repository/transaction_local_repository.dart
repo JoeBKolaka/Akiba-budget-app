@@ -50,8 +50,6 @@ class TransactionLocalRepository {
       transactionModel.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
-    
-    print('💾 Transaction saved to database: ${transactionModel.transaction_name}');
   }
 
   Future<List<TransactionModel>> getTransactions() async {
@@ -66,10 +64,8 @@ class TransactionLocalRepository {
       for (final elem in results) {
         transactions.add(TransactionModel.fromMap(elem));
       }
-      print('📋 Retrieved ${transactions.length} transactions from DB');
       return transactions;
     }
-    print('📋 No transactions found in DB');
     return [];
   }
 
@@ -138,6 +134,32 @@ class TransactionLocalRepository {
       where: 'category_id = ?',
       whereArgs: [category_id],
       orderBy: 'created_at DESC',
+    );
+
+    if (results.isNotEmpty) {
+      List<TransactionModel> transactions = [];
+      for (final elem in results) {
+        transactions.add(TransactionModel.fromMap(elem));
+      }
+      return transactions;
+    }
+    return [];
+  }
+
+  Future<List<TransactionModel>> getTransactionsByCategoryAndDateRange(
+    String categoryId,
+    DateTime startDate,
+    DateTime endDate,
+  ) async {
+    final db = await database;
+    final startTimestamp = startDate.millisecondsSinceEpoch;
+    final endTimestamp = endDate.millisecondsSinceEpoch;
+
+    final results = await db.query(
+      tableName,
+      where: 'category_id = ? AND created_at BETWEEN ? AND ?',
+      whereArgs: [categoryId, startTimestamp, endTimestamp],
+      orderBy: 'created_at ASC',
     );
 
     if (results.isNotEmpty) {
@@ -251,27 +273,40 @@ class TransactionLocalRepository {
     return result.first['total'] as double? ?? 0.0;
   }
 
-  // Add update method
-  Future<void> updateTransaction(TransactionModel transaction) async {
+  // Get total income/expense for a category in date range
+  Future<Map<String, double>> getCategoryTotalsByDateRange(
+    String categoryId,
+    DateTime startDate,
+    DateTime endDate,
+  ) async {
     final db = await database;
-    await db.update(
-      tableName,
-      transaction.toMap(),
-      where: 'id = ?',
-      whereArgs: [transaction.id],
-    );
-    print('📝 Transaction updated: ${transaction.transaction_name}');
-  }
+    final startTimestamp = startDate.millisecondsSinceEpoch;
+    final endTimestamp = endDate.millisecondsSinceEpoch;
 
-  // Add delete method
-  Future<void> deleteTransaction(String id) async {
-    final db = await database;
-    await db.delete(
-      tableName,
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-    print('🗑️ Transaction deleted: $id');
+    final incomeResult = await db.rawQuery('''
+      SELECT SUM(transaction_amount) as total
+      FROM $tableName 
+      WHERE category_id = ?
+      AND transaction_type = 'income'
+      AND created_at BETWEEN ? AND ?
+    ''', [categoryId, startTimestamp, endTimestamp]);
+
+    final expenseResult = await db.rawQuery('''
+      SELECT SUM(transaction_amount) as total
+      FROM $tableName 
+      WHERE category_id = ?
+      AND transaction_type = 'expense'
+      AND created_at BETWEEN ? AND ?
+    ''', [categoryId, startTimestamp, endTimestamp]);
+
+    final income = incomeResult.first['total'] as double? ?? 0.0;
+    final expense = expenseResult.first['total'] as double? ?? 0.0;
+
+    return {
+      'income': income,
+      'expense': expense,
+      'net': income - expense,
+    };
   }
 
   // Get transaction by ID
@@ -287,54 +322,5 @@ class TransactionLocalRepository {
       return TransactionModel.fromMap(results.first);
     }
     return null;
-  }
-
-  // Get total income/expense for a period
-  Future<Map<String, double>> getTotalsByDateRange(
-    DateTime startDate,
-    DateTime endDate,
-  ) async {
-    final db = await database;
-    final startTimestamp = startDate.millisecondsSinceEpoch;
-    final endTimestamp = endDate.millisecondsSinceEpoch;
-
-    final incomeResult = await db.rawQuery('''
-      SELECT SUM(transaction_amount) as total
-      FROM $tableName 
-      WHERE transaction_type = 'income'
-      AND created_at BETWEEN ? AND ?
-    ''', [startTimestamp, endTimestamp]);
-
-    final expenseResult = await db.rawQuery('''
-      SELECT SUM(transaction_amount) as total
-      FROM $tableName 
-      WHERE transaction_type = 'expense'
-      AND created_at BETWEEN ? AND ?
-    ''', [startTimestamp, endTimestamp]);
-
-    final income = incomeResult.first['total'] as double? ?? 0.0;
-    final expense = expenseResult.first['total'] as double? ?? 0.0;
-
-    return {
-      'income': income,
-      'expense': expense,
-      'net': income - expense,
-    };
-  }
-
-  // Debug method to print all transactions
-  Future<void> debugPrintAllTransactions() async {
-    final transactions = await getTransactions();
-    print('=== DEBUG: ALL TRANSACTIONS IN DATABASE ===');
-    print('Total: ${transactions.length} transactions');
-    for (var i = 0; i < transactions.length; i++) {
-      final t = transactions[i];
-      print('${i + 1}. ${t.transaction_name}');
-      print('   Amount: ${t.transaction_amount}');
-      print('   Type: ${t.transaction_type}');
-      print('   Date: ${t.created_at}');
-      print('   ID: ${t.id}');
-      print('---');
-    }
   }
 }
