@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:akiba/features/home/cubit/transaction_cubit.dart';
 import 'package:akiba/models/category_model.dart';
 
+import '../../../create account/cubit/currency_cubit.dart';
+
 class AccountTransactionList extends StatefulWidget {
   final String accountId;
   final String selectedView;
@@ -27,6 +29,8 @@ class AccountTransactionList extends StatefulWidget {
 
 class _AccountTransactionListState extends State<AccountTransactionList> {
   List<CategoryModel> _categories = [];
+  String _currencySymbol = '\$';
+  int _decimalPlaces = 2;
 
   @override
   void initState() {
@@ -46,6 +50,18 @@ class _AccountTransactionListState extends State<AccountTransactionList> {
     }
   }
 
+  void _loadCurrencyData() {
+    try {
+      final currencyState = context.read<CurrencyCubit>().state;
+      if (currencyState is CurrencyPicked) {
+        setState(() {
+          _currencySymbol = currencyState.user.symbol;
+          _decimalPlaces = currencyState.user.decimal_digits;
+        });
+      }
+    } catch (e) {}
+  }
+
   CategoryModel? _getCategoryForTransaction(String categoryId) {
     try {
       return _categories.firstWhere((category) => category.id == categoryId);
@@ -55,34 +71,32 @@ class _AccountTransactionListState extends State<AccountTransactionList> {
   }
 
   List<dynamic> _getFilteredTransactions(List<dynamic> transactions) {
-    // First filter by account
     List<dynamic> accountTransactions = transactions
         .where((transaction) => transaction.account_id == widget.accountId)
         .toList();
 
     if (widget.selectedView == 'weekly') {
       final now = DateTime.now();
-      final baseDate = DateTime(now.year, now.month, now.day).add(
-        Duration(days: 7 * widget.weekOffset),
-      );
-      
-      // Calculate week start (Monday)
-      final weekStart = baseDate.subtract(Duration(days: baseDate.weekday - 1));
-      
-      // Calculate week end (Sunday)
-      final weekEnd = weekStart.add(const Duration(days: 6, hours: 23, minutes: 59, seconds: 59));
+      final baseDate = DateTime(
+        now.year,
+        now.month,
+        now.day,
+      ).add(Duration(days: 7 * widget.weekOffset));
 
+      final weekStart = baseDate.subtract(Duration(days: baseDate.weekday - 1));
+
+      final weekEnd = weekStart.add(
+        const Duration(days: 6, hours: 23, minutes: 59, seconds: 59),
+      );
 
       return accountTransactions.where((transaction) {
         final transactionDate = transaction.created_at;
-        final isInRange = (transactionDate.isAfter(weekStart) || 
-                          transactionDate.isAtSameMomentAs(weekStart)) &&
-                         (transactionDate.isBefore(weekEnd) || 
-                          transactionDate.isAtSameMomentAs(weekEnd));
-        
-        if (isInRange) {
-        }
-        
+        final isInRange =
+            (transactionDate.isAfter(weekStart) ||
+                transactionDate.isAtSameMomentAs(weekStart)) &&
+            (transactionDate.isBefore(weekEnd) ||
+                transactionDate.isAtSameMomentAs(weekEnd));
+
         return isInRange;
       }).toList();
     } else if (widget.selectedView == 'monthly') {
@@ -91,19 +105,18 @@ class _AccountTransactionListState extends State<AccountTransactionList> {
       final monthEnd = DateTime(
         monthStart.year,
         monthStart.month + 1,
-        0, // Last day of month
+        0,
         23,
         59,
         59,
         999,
       );
 
-
       return accountTransactions.where((transaction) {
         final transactionDate = transaction.created_at;
-        return (transactionDate.isAfter(monthStart) || 
+        return (transactionDate.isAfter(monthStart) ||
                 transactionDate.isAtSameMomentAs(monthStart)) &&
-               (transactionDate.isBefore(monthEnd) || 
+            (transactionDate.isBefore(monthEnd) ||
                 transactionDate.isAtSameMomentAs(monthEnd));
       }).toList();
     } else if (widget.selectedView == 'yearly') {
@@ -112,16 +125,14 @@ class _AccountTransactionListState extends State<AccountTransactionList> {
       final yearStart = DateTime(year, 1, 1);
       final yearEnd = DateTime(year, 12, 31, 23, 59, 59, 999);
 
-
       return accountTransactions.where((transaction) {
         final transactionDate = transaction.created_at;
-        return (transactionDate.isAfter(yearStart) || 
+        return (transactionDate.isAfter(yearStart) ||
                 transactionDate.isAtSameMomentAs(yearStart)) &&
-               (transactionDate.isBefore(yearEnd) || 
+            (transactionDate.isBefore(yearEnd) ||
                 transactionDate.isAtSameMomentAs(yearEnd));
       }).toList();
     } else {
-      // allTime or default - return all account transactions
       return accountTransactions;
     }
   }
@@ -144,12 +155,10 @@ class _AccountTransactionListState extends State<AccountTransactionList> {
       grouped[date]!.add(transaction);
     }
 
-    
     final sortedKeys = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
 
     final Map<DateTime, List<dynamic>> sortedMap = {};
     for (var key in sortedKeys) {
-      
       grouped[key]!.sort((a, b) => b.created_at.compareTo(a.created_at));
       sortedMap[key] = grouped[key]!;
     }
@@ -170,9 +179,10 @@ class _AccountTransactionListState extends State<AccountTransactionList> {
   }
 
   Widget _buildDailyCashflow(List<dynamic> transactions) {
+    _loadCurrencyData();
     final dailyCashflow = _calculateDailyCashflow(transactions);
     return Text(
-      'Ksh ${dailyCashflow >= 0 ? '+' : ''}${NumberFormat('#,##0').format(dailyCashflow)}',
+      '$_currencySymbol${dailyCashflow >= 0 ? '+' : ''}${NumberFormat('#,##0.${'0' * _decimalPlaces}').format(dailyCashflow)}',
       style: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w600,
@@ -185,7 +195,6 @@ class _AccountTransactionListState extends State<AccountTransactionList> {
   Widget build(BuildContext context) {
     return BlocBuilder<TransactionCubit, TransactionState>(
       builder: (context, state) {
-
         if (state is TransactionStateLoading) {
           return Center(child: CircularProgressIndicator());
         }
@@ -209,14 +218,9 @@ class _AccountTransactionListState extends State<AccountTransactionList> {
         }
 
         if (state is TransactionStateLoaded) {
-          
           final filteredTransactions = _getFilteredTransactions(
             state.transactions,
           );
-
-          
-          if (filteredTransactions.isNotEmpty) {
-          }
 
           if (filteredTransactions.isEmpty) {
             return Center(
@@ -251,7 +255,6 @@ class _AccountTransactionListState extends State<AccountTransactionList> {
           final groupedTransactions = _groupTransactionsByDate(
             filteredTransactions,
           );
-
 
           return ListView(
             shrinkWrap: true,
@@ -330,20 +333,23 @@ class _AccountTransactionListState extends State<AccountTransactionList> {
                             style: const TextStyle(color: Colors.black),
                           ),
                           subtitle: Text(
-                            DateFormat('hh:mm a').format(transaction.created_at),
-                            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                            DateFormat(
+                              'hh:mm a',
+                            ).format(transaction.created_at),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
                           ),
                           trailing: Text(
-                            'Ksh ${NumberFormat('#,##0').format(transaction.transaction_amount)}',
+                            '$_currencySymbol${NumberFormat('#,##0.${'0' * _decimalPlaces}').format(transaction.transaction_amount)}',
                             style: TextStyle(
                               color: transaction.transaction_type == 'income'
                                   ? Colors.green
                                   : Colors.red,
                             ),
                           ),
-                          onTap: () {
-                            // Handle transaction tap
-                          },
+                          onTap: () {},
                         ),
                       );
                     },

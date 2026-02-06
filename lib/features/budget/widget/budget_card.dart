@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../models/category_model.dart';
+import '../../create account/cubit/currency_cubit.dart';
 
 class BudgetCard extends StatefulWidget {
   const BudgetCard({super.key});
@@ -18,6 +19,8 @@ class BudgetCard extends StatefulWidget {
 class _BudgetCardState extends State<BudgetCard> {
   late List<BudgetModel> _budgets = [];
   late List<CategoryModel> _categories = [];
+  String _currencySymbol = '\$';
+  int _decimalPlaces = 0;
   Map<String, Map<String, double>> _spendingData = {};
 
   String _calculateDaysLeft(BudgetModel budget) {
@@ -57,10 +60,11 @@ class _BudgetCardState extends State<BudgetCard> {
   }
 
   void _loadBudgets() async {
-    // Check if widget is mounted before accessing context
     if (!mounted) return;
 
     try {
+      CurrencyPicked user =
+          context.read<CurrencyCubit>().state as CurrencyPicked;
       final budgets = await context
           .read<BudgetCubit>()
           .budgetLocalRepository
@@ -72,7 +76,7 @@ class _BudgetCardState extends State<BudgetCard> {
 
       final spendingData = <String, Map<String, double>>{};
       for (var budget in budgets) {
-        if (!mounted) return; // Check again before async operation
+        if (!mounted) return;
         final spending = await context.read<BudgetCubit>().getBudgetSpending(
           budget.category_id,
         );
@@ -84,11 +88,11 @@ class _BudgetCardState extends State<BudgetCard> {
           _budgets = budgets;
           _categories = categories;
           _spendingData = spendingData;
+          _currencySymbol = user.user.symbol;
+          _decimalPlaces = user.user.decimal_digits;
         });
       }
-    } catch (e) {
-      // Handle error
-    }
+    } catch (e) {}
   }
 
   CategoryModel? _getCategoryForBudget(String categoryId) {
@@ -147,7 +151,7 @@ class _BudgetCardState extends State<BudgetCard> {
             crossAxisCount: 2,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
-            childAspectRatio: 0.9, // Increased from 0.8 to 0.9 to fix overflow
+            childAspectRatio: 0.9,
           ),
           itemCount: _budgets.length,
           itemBuilder: (context, index) {
@@ -167,7 +171,7 @@ class _BudgetCardState extends State<BudgetCard> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(12), // Reduced from 16 to 12
+                padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -178,23 +182,21 @@ class _BudgetCardState extends State<BudgetCard> {
                           backgroundColor: category != null
                               ? category.color
                               : Colors.grey,
-                          radius: 14, // Reduced from 20 to 14
+                          radius: 14,
                           child: Center(
                             child: Text(
                               category?.emoji ?? '💰',
-                              style: const TextStyle(
-                                fontSize: 12,
-                              ), // Reduced from 16
+                              style: const TextStyle(fontSize: 12),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 6), // Reduced from 8
+                        const SizedBox(width: 6),
                         Expanded(
                           child: Text(
                             category?.name ?? 'Sijui',
                             style: const TextStyle(
                               color: Colors.black87,
-                              fontSize: 12, // Reduced from 14
+                              fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -210,17 +212,17 @@ class _BudgetCardState extends State<BudgetCard> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Spent: ${spent.toStringAsFixed(0)}',
+                            'Spent: $_currencySymbol${spent.toStringAsFixed(_decimalPlaces)}',
                             style: const TextStyle(
                               color: Colors.black87,
-                              fontSize: 12, // Reduced from 14
+                              fontSize: 12,
                             ),
                           ),
                           Text(
-                            'Budget: ${budget.budget_amount.toStringAsFixed(0)}',
+                            'Budget: $_currencySymbol${budget.budget_amount.toStringAsFixed(_decimalPlaces)}',
                             style: const TextStyle(
                               color: Colors.black87,
-                              fontSize: 12, // Reduced from 14
+                              fontSize: 12,
                             ),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
@@ -234,18 +236,18 @@ class _BudgetCardState extends State<BudgetCard> {
                                   color: isOverspent
                                       ? Colors.red
                                       : Colors.green,
-                                  fontSize: 10, // Reduced from 12
+                                  fontSize: 10,
                                 ),
                               ),
                               Text(
                                 isOverspent
-                                    ? overspentAmount.toStringAsFixed(0)
-                                    : remaining.toStringAsFixed(0),
+                                    ? '$_currencySymbol${overspentAmount.toStringAsFixed(_decimalPlaces)}'
+                                    : '$_currencySymbol${remaining.toStringAsFixed(_decimalPlaces)}',
                                 style: TextStyle(
                                   color: isOverspent
                                       ? Colors.red
                                       : Colors.green,
-                                  fontSize: 14, // Reduced from 16
+                                  fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -255,7 +257,7 @@ class _BudgetCardState extends State<BudgetCard> {
                             _calculateDaysLeft(budget),
                             style: const TextStyle(
                               color: Colors.black54,
-                              fontSize: 10, // Reduced from 13
+                              fontSize: 10,
                             ),
                           ),
                         ],

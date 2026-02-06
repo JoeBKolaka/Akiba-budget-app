@@ -28,7 +28,6 @@ class _AccountStatisticsState extends State<AccountStatistics> {
   @override
   void initState() {
     super.initState();
-    // Ensure cubit has transactions loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<TransactionCubit>().loadTransactions();
     });

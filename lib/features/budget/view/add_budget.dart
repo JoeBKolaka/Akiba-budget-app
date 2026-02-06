@@ -25,7 +25,7 @@ class _AddBudgetState extends State<AddBudget> {
   void createNewTransaction() async {
     CurrencyPicked user = context.read<CurrencyCubit>().state as CurrencyPicked;
     String amountText = _amountController.text
-        .replaceAll('Ksh', '')
+        .replaceAll(user.user.symbol, '')
         .replaceAll(',', '')
         .trim();
     double amount = double.tryParse(amountText) ?? 0.0;

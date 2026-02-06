@@ -1,3 +1,4 @@
+import 'package:akiba/features/create%20account/cubit/currency_cubit.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,6 +28,8 @@ class _BarGraphState extends State<BarGraph> {
   late int weekOffset;
   late int monthOffset;
   late int yearOffset;
+  String _currencySymbol = '\$';
+  int _decimalPlaces = 0;
 
   List<double> _cashflowData = [];
   double _totalCashflow = 0.0;
@@ -42,6 +45,7 @@ class _BarGraphState extends State<BarGraph> {
     yearOffset = selected.year - now.year;
 
     _initializeEmptyData();
+    _loadCurrencyData();
   }
 
   void _initializeEmptyData() {
@@ -57,7 +61,7 @@ class _BarGraphState extends State<BarGraph> {
     } else if (_selectedView == 'yearly') {
       itemCount = 12;
     }
-    
+
     _cashflowData = List<double>.filled(itemCount, 0.0);
     _totalCashflow = 0.0;
   }
@@ -65,13 +69,13 @@ class _BarGraphState extends State<BarGraph> {
   @override
   void didUpdateWidget(covariant BarGraph oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
+
     if (oldWidget.selectedDate != widget.selectedDate) {
       final now = DateTime.now();
       weekOffset = _calculateWeekOffset(widget.selectedDate, now);
       monthOffset = _calculateMonthOffset(widget.selectedDate, now);
       yearOffset = widget.selectedDate.year - now.year;
-      
+
       _calculateCashflow();
     }
   }
@@ -88,6 +92,18 @@ class _BarGraphState extends State<BarGraph> {
     return (selected.year - now.year) * 12 + (selected.month - now.month);
   }
 
+  void _loadCurrencyData() {
+    try {
+      final currencyState = context.read<CurrencyCubit>().state;
+      if (currencyState is CurrencyPicked) {
+        setState(() {
+          _currencySymbol = currencyState.user.symbol;
+          _decimalPlaces = currencyState.user.decimal_digits;
+        });
+      }
+    } catch (e) {}
+  }
+
   void _notifyOffsets() {
     widget.onOffsetsChanged?.call({
       'weekOffset': weekOffset,
@@ -100,7 +116,7 @@ class _BarGraphState extends State<BarGraph> {
   void _calculateCashflow() {
     final cubit = context.read<TransactionCubit>();
     final transactions = cubit.transactions;
-    
+
     if (transactions.isEmpty) {
       setState(() {
         _cashflowData = List.filled(_cashflowData.length, 0.0);
@@ -121,7 +137,7 @@ class _BarGraphState extends State<BarGraph> {
     }
 
     newTotalCashflow = newCashflowData.fold(0.0, (sum, value) => sum + value);
-    
+
     setState(() {
       _cashflowData = newCashflowData;
       _totalCashflow = newTotalCashflow;
@@ -146,11 +162,12 @@ class _BarGraphState extends State<BarGraph> {
       final dayEnd = dayStart.add(const Duration(days: 1));
 
       double netCashflow = 0;
-      
+
       for (var transaction in transactions) {
         final transactionDate = transaction.created_at;
-        if (transactionDate.isAtSameMomentAs(dayStart) || 
-            (transactionDate.isAfter(dayStart) && transactionDate.isBefore(dayEnd))) {
+        if (transactionDate.isAtSameMomentAs(dayStart) ||
+            (transactionDate.isAfter(dayStart) &&
+                transactionDate.isBefore(dayEnd))) {
           if (transaction.transaction_type == 'income') {
             netCashflow += transaction.transaction_amount;
           } else if (transaction.transaction_type == 'expense') {
@@ -171,7 +188,7 @@ class _BarGraphState extends State<BarGraph> {
       widget.selectedDate.month + monthOffset,
     );
     final totalDays = DateTime(monthDate.year, monthDate.month + 1, 0).day;
-    
+
     final cashflow = List<double>.filled(totalDays, 0.0);
 
     for (int day = 1; day <= totalDays; day++) {
@@ -184,11 +201,12 @@ class _BarGraphState extends State<BarGraph> {
       final dayEnd = dayStart.add(const Duration(days: 1));
 
       double netCashflow = 0;
-      
+
       for (var transaction in transactions) {
         final transactionDate = transaction.created_at;
-        if (transactionDate.isAtSameMomentAs(dayStart) || 
-            (transactionDate.isAfter(dayStart) && transactionDate.isBefore(dayEnd))) {
+        if (transactionDate.isAtSameMomentAs(dayStart) ||
+            (transactionDate.isAfter(dayStart) &&
+                transactionDate.isBefore(dayEnd))) {
           if (transaction.transaction_type == 'income') {
             netCashflow += transaction.transaction_amount;
           } else if (transaction.transaction_type == 'expense') {
@@ -205,7 +223,7 @@ class _BarGraphState extends State<BarGraph> {
 
   List<double> _calculateYearlyCashflow(List<dynamic> transactions) {
     final year = widget.selectedDate.year + yearOffset;
-    
+
     final cashflow = List<double>.filled(12, 0.0);
 
     for (int month = 1; month <= 12; month++) {
@@ -213,11 +231,12 @@ class _BarGraphState extends State<BarGraph> {
       final monthEnd = DateTime(year, month + 1, 1);
 
       double netCashflow = 0;
-      
+
       for (var transaction in transactions) {
         final transactionDate = transaction.created_at;
-        if (transactionDate.isAtSameMomentAs(monthStart) || 
-            (transactionDate.isAfter(monthStart) && transactionDate.isBefore(monthEnd))) {
+        if (transactionDate.isAtSameMomentAs(monthStart) ||
+            (transactionDate.isAfter(monthStart) &&
+                transactionDate.isBefore(monthEnd))) {
           if (transaction.transaction_type == 'income') {
             netCashflow += transaction.transaction_amount;
           } else if (transaction.transaction_type == 'expense') {
@@ -245,17 +264,14 @@ class _BarGraphState extends State<BarGraph> {
     return BlocConsumer<TransactionCubit, TransactionState>(
       listener: (context, state) {
         if (state is TransactionStateLoaded) {
-          // Recalculate cashflow when transactions are loaded
           _calculateCashflow();
         }
       },
       builder: (context, state) {
         if (state is TransactionStateLoading) {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
+          return Center(child: CircularProgressIndicator());
         }
-        
+
         if (state is TransactionStateError) {
           return Center(
             child: Column(
@@ -273,7 +289,7 @@ class _BarGraphState extends State<BarGraph> {
             ),
           );
         }
-        
+
         return _buildGraphContent();
       },
     );
@@ -357,7 +373,7 @@ class _BarGraphState extends State<BarGraph> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Ksh ${NumberFormat('#,##0').format(_totalCashflow.abs())}',
+                '$_currencySymbol${NumberFormat('#,##0.${'0' * _decimalPlaces}').format(_totalCashflow.abs())}',
                 style: TextStyle(
                   fontSize: 36,
                   fontWeight: FontWeight.w500,
@@ -396,8 +412,8 @@ class _BarGraphState extends State<BarGraph> {
                           width: _selectedView == 'weekly'
                               ? 40
                               : _selectedView == 'monthly'
-                                  ? 6
-                                  : 20,
+                              ? 6
+                              : 20,
                           borderRadius: BorderRadius.circular(4),
                           color: color,
                         ),
@@ -407,8 +423,8 @@ class _BarGraphState extends State<BarGraph> {
                   groupsSpace: _selectedView == 'weekly'
                       ? 6
                       : _selectedView == 'monthly'
-                          ? 2
-                          : 4,
+                      ? 2
+                      : 4,
                   titlesData: FlTitlesData(
                     leftTitles: const AxisTitles(
                       sideTitles: SideTitles(showTitles: false),

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_currency_text_input_formatter/flutter_currency_text_input_formatter.dart';
 import 'package:flutter/services.dart';
+
+import '../../create account/cubit/currency_cubit.dart';
 
 class AmmountTextfield extends StatefulWidget {
   final TextEditingController? controller;
@@ -17,13 +20,15 @@ class _AmmountTextfieldState extends State<AmmountTextfield> {
   @override
   void initState() {
     super.initState();
+    CurrencyPicked user =
+          context.read<CurrencyCubit>().state as CurrencyPicked;
     _amountController = widget.controller ?? TextEditingController();
     
     _formatter = FlutterCurrencyTextInputFormatter(
       maxDecimalDigits: 2,
-      decimalSeparator: '.', // Use dot for decimal
-      thousandSeparator: ',', // Use comma for thousand separator
-      leadingSymbol: 'Ksh ', // Use Ksh as leading symbol
+      decimalSeparator: '.', 
+      thousandSeparator: ',', 
+      leadingSymbol: user.user.symbol, 
     );
     
     // Set initial value to 0.00

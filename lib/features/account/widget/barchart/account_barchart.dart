@@ -5,11 +5,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 
+import '../../../create account/cubit/currency_cubit.dart';
+
 class AccountBarchart extends StatefulWidget {
   final String accountId;
   final String accountName;
   final DateTime selectedDate;
   final String selectedView;
+  
   final Function(String, int, int, int)? onViewChanged;
 
   const AccountBarchart({
@@ -29,6 +32,8 @@ class _AccountBarchartState extends State<AccountBarchart> {
   late int weekOffset;
   late int monthOffset;
   late int yearOffset;
+  String _currencySymbol = '\$';
+  int _decimalPlaces = 2;
 
   List<double> _cashflowData = [];
   double _totalCashflow = 0.0;
@@ -106,9 +111,21 @@ class _AccountBarchartState extends State<AccountBarchart> {
     widget.onViewChanged?.call(view, week, month, year);
   }
 
+  void _loadCurrencyData() {
+    try {
+      final currencyState = context.read<CurrencyCubit>().state;
+      if (currencyState is CurrencyPicked) {
+        setState(() {
+          _currencySymbol = currencyState.user.symbol;
+          _decimalPlaces = currencyState.user.decimal_digits;
+        });
+      }
+    } catch (e) {}
+  }
+
   void _calculateCashflow() {
     final cubit = context.read<TransactionCubit>();
-
+    _loadCurrencyData();
     
     if (cubit.state is! TransactionStateLoaded) {
       return;
@@ -279,7 +296,6 @@ class _AccountBarchartState extends State<AccountBarchart> {
     return BlocConsumer<TransactionCubit, TransactionState>(
       listener: (context, state) {
         if (state is TransactionStateLoaded) {
-          
           _calculateCashflow();
         }
       },
@@ -307,7 +323,6 @@ class _AccountBarchartState extends State<AccountBarchart> {
         }
 
         if (state is TransactionStateLoaded && _cashflowData.isEmpty) {
-          // Initial calculation when state is first loaded
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
               _calculateCashflow();
@@ -416,7 +431,7 @@ class _AccountBarchartState extends State<AccountBarchart> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Ksh ${NumberFormat('#,##0').format(_totalCashflow.abs())}',
+                '$_currencySymbol${NumberFormat('#,##0.${'0' * _decimalPlaces}').format(_totalCashflow.abs())}',
                 style: TextStyle(
                   fontSize: 36,
                   fontWeight: FontWeight.w500,

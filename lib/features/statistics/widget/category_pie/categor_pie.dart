@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../theme/pallete.dart';
 import '../../../home/cubit/transaction_cubit.dart';
+import '../../../create account/cubit/currency_cubit.dart';
 
 class CategorPie extends StatefulWidget {
   final String categoryId;
@@ -33,6 +34,8 @@ class _CategorPieState extends State<CategorPie> {
   late int _weekOffset;
   late int _monthOffset;
   late int _yearOffset;
+  String _currencySymbol = '\$';
+  int _decimalPlaces = 0;
 
   @override
   void initState() {
@@ -41,6 +44,19 @@ class _CategorPieState extends State<CategorPie> {
     _weekOffset = widget.weekOffset;
     _monthOffset = widget.monthOffset;
     _yearOffset = widget.yearOffset;
+    _loadCurrencyData();
+  }
+
+  void _loadCurrencyData() {
+    try {
+      final currencyState = context.read<CurrencyCubit>().state;
+      if (currencyState is CurrencyPicked) {
+        setState(() {
+          _currencySymbol = currencyState.user.symbol;
+          _decimalPlaces = currencyState.user.decimal_digits;
+        });
+      }
+    } catch (e) {}
   }
 
   @override
@@ -60,7 +76,12 @@ class _CategorPieState extends State<CategorPie> {
   }
 
   void _notifyViewChange() {
-    widget.onViewChanged?.call(_selectedView, _weekOffset, _monthOffset, _yearOffset);
+    widget.onViewChanged?.call(
+      _selectedView,
+      _weekOffset,
+      _monthOffset,
+      _yearOffset,
+    );
   }
 
   String _getDateRange() {
@@ -88,12 +109,10 @@ class _CategorPieState extends State<CategorPie> {
     double totalIncome = 0.0;
     double totalExpense = 0.0;
 
-    // Filter by category
     final categoryTransactions = transactions
         .where((transaction) => transaction.category_id == widget.categoryId)
         .toList();
 
-    // Apply date filtering
     List<dynamic> filteredTransactions = [];
 
     if (_selectedView == 'allTime') {
@@ -142,7 +161,6 @@ class _CategorPieState extends State<CategorPie> {
       }).toList();
     }
 
-    // Calculate totals
     for (var transaction in filteredTransactions) {
       if (transaction.transaction_type == 'income') {
         totalIncome += transaction.transaction_amount;
@@ -284,7 +302,7 @@ class _CategorPieState extends State<CategorPie> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                'Ksh ${NumberFormat('#,##0.00').format(netCashflow.abs())}',
+                                '$_currencySymbol${NumberFormat('#,##0.${'0' * _decimalPlaces}').format(netCashflow.abs())}',
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
@@ -317,18 +335,21 @@ class _CategorPieState extends State<CategorPie> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Show back button only if not "allTime"
                       _selectedView == 'allTime'
-                          ? const SizedBox(width: 48) // Empty space for alignment
+                          ? const SizedBox(width: 48)
                           : IconButton(
                               onPressed: () {
                                 setState(() {
                                   if (_selectedView == 'weekly') _weekOffset--;
-                                  if (_selectedView == 'monthly') _monthOffset--;
+                                  if (_selectedView == 'monthly')
+                                    _monthOffset--;
                                   if (_selectedView == 'yearly') _yearOffset--;
                                 });
                                 _notifyViewChange();
@@ -336,14 +357,14 @@ class _CategorPieState extends State<CategorPie> {
                               icon: const Icon(Icons.arrow_back),
                             ),
                       Text(_getDateRange()),
-                      // Show forward button only if not "allTime"
                       _selectedView == 'allTime'
-                          ? const SizedBox(width: 48) // Empty space for alignment
+                          ? const SizedBox(width: 48)
                           : IconButton(
                               onPressed: () {
                                 setState(() {
                                   if (_selectedView == 'weekly') _weekOffset++;
-                                  if (_selectedView == 'monthly') _monthOffset++;
+                                  if (_selectedView == 'monthly')
+                                    _monthOffset++;
                                   if (_selectedView == 'yearly') _yearOffset++;
                                 });
                                 _notifyViewChange();

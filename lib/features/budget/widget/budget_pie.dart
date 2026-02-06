@@ -7,6 +7,7 @@ import 'package:akiba/features/category/cubit/add_new_category_cubit.dart';
 import 'package:akiba/models/budget_model.dart';
 import 'package:akiba/models/category_model.dart';
 import '../../../../theme/pallete.dart';
+import '../../create account/cubit/currency_cubit.dart';
 
 class BudgetPie extends StatefulWidget {
   const BudgetPie({super.key});
@@ -19,6 +20,8 @@ class _BudgetPieState extends State<BudgetPie> {
   String _selectedView = 'daily';
   late List<BudgetModel> _budgets = [];
   late List<CategoryModel> _categories = [];
+  String _currencySymbol = '\$';
+  int _decimalPlaces = 0;
   Map<String, Map<String, double>> _spendingData = {};
 
   @override
@@ -28,6 +31,7 @@ class _BudgetPieState extends State<BudgetPie> {
   }
 
   void _loadBudgets() async {
+    CurrencyPicked user = context.read<CurrencyCubit>().state as CurrencyPicked;
     final budgets = await context
         .read<BudgetCubit>()
         .budgetLocalRepository
@@ -50,6 +54,8 @@ class _BudgetPieState extends State<BudgetPie> {
         _budgets = budgets;
         _categories = categories;
         _spendingData = spendingData;
+        _currencySymbol = user.user.symbol;
+        _decimalPlaces = user.user.decimal_digits;
       });
     }
   }
@@ -167,7 +173,8 @@ class _BudgetPieState extends State<BudgetPie> {
             value: meanAmount,
             color: sectionColor,
             radius: 15,
-            title: '${meanAmount.toStringAsFixed(0)}\n$categoryName',
+            title:
+                '$_currencySymbol${meanAmount.toStringAsFixed(_decimalPlaces)}\n$categoryName',
             titleStyle: const TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.bold,
@@ -331,7 +338,7 @@ class _BudgetPieState extends State<BudgetPie> {
                             style: TextStyle(fontSize: 14, color: Colors.grey),
                           ),
                           Text(
-                            '${_getTotalMeanForPeriod().toStringAsFixed(0)}',
+                            '$_currencySymbol${_getTotalMeanForPeriod().toStringAsFixed(_decimalPlaces)}',
                             style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
