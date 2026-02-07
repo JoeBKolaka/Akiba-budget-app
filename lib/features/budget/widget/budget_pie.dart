@@ -6,6 +6,7 @@ import 'package:akiba/features/budget/cubit/budget_cubit.dart';
 import 'package:akiba/features/category/cubit/add_new_category_cubit.dart';
 import 'package:akiba/models/budget_model.dart';
 import 'package:akiba/models/category_model.dart';
+import 'package:intl/intl.dart';
 import '../../../../theme/pallete.dart';
 import '../../create account/cubit/currency_cubit.dart';
 
@@ -129,6 +130,10 @@ class _BudgetPieState extends State<BudgetPie> {
     }
   }
 
+  String _formatNumber(double value) {
+    return NumberFormat('#,##0.${'0' * _decimalPlaces}').format(value);
+  }
+
   List<PieChartSectionData> _getPieSections() {
     final sections = <PieChartSectionData>[];
     final defaultColors = [
@@ -174,9 +179,8 @@ class _BudgetPieState extends State<BudgetPie> {
             color: sectionColor,
             radius: 15,
             title:
-                '$_currencySymbol${meanAmount.toStringAsFixed(_decimalPlaces)}\n$categoryName',
-            titleStyle: const TextStyle(
-              fontSize: 10,
+                '$_currencySymbol${_formatNumber(meanAmount)}\n$categoryName',
+            titleStyle: Theme.of(context).textTheme.bodySmall!.copyWith(
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
@@ -192,8 +196,7 @@ class _BudgetPieState extends State<BudgetPie> {
           color: Pallete.greyColor,
           radius: 15,
           title: 'No\nBudgets',
-          titleStyle: const TextStyle(
-            fontSize: 12,
+          titleStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
@@ -259,7 +262,6 @@ class _BudgetPieState extends State<BudgetPie> {
         ),
       ],
       child: Container(
-        color: Pallete.whiteColor,
         margin: const EdgeInsets.all(10.0),
         child: Column(
           children: [
@@ -276,19 +278,12 @@ class _BudgetPieState extends State<BudgetPie> {
                       children: [
                         Text(
                           _getPeriodTitle(_selectedView),
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
+                          style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const SizedBox(height: 4),
                         Text(
                           _getPeriodSubtitle(_selectedView),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
                     ),
@@ -333,17 +328,14 @@ class _BudgetPieState extends State<BudgetPie> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
+                          Text(
                             'Total',
-                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                            style: Theme.of(context).textTheme.bodyMedium,
                           ),
                           Text(
-                            '$_currencySymbol${_getTotalMeanForPeriod().toStringAsFixed(_decimalPlaces)}',
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green,
-                            ),
+                            '$_currencySymbol${_formatNumber(_getTotalMeanForPeriod())}',
+                            style: Theme.of(context).textTheme.titleLarge!
+                                .copyWith(color: Colors.green),
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -354,10 +346,7 @@ class _BudgetPieState extends State<BudgetPie> {
                                 : _selectedView == 'monthly'
                                 ? 'per month'
                                 : 'per year',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
                       ),

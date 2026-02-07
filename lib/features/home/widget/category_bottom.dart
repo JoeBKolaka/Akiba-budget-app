@@ -15,7 +15,6 @@ class _CategoryBottomState extends State<CategoryBottom> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
       height: 300,
       child: Column(
         children: [

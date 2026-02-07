@@ -7,7 +7,9 @@ import '../../home/views/home_view.dart' show HomeView;
 import '../cubit/currency_cubit.dart';
 
 class CurrencyWidget extends StatefulWidget {
-  const CurrencyWidget({super.key});
+  final void Function(bool) changeThemeMode;
+
+  const CurrencyWidget({super.key, required this.changeThemeMode});
 
   @override
   State<CurrencyWidget> createState() => _CurrencyWidgetState();
@@ -22,7 +24,7 @@ class _CurrencyWidgetState extends State<CurrencyWidget> {
           // Navigate to home after saving currency
           Navigator.pushAndRemoveUntil(
             context,
-            HomeView.route(),
+            HomeView.route(widget.changeThemeMode),
             (route) => false,
           );
         }
@@ -51,7 +53,6 @@ class _CurrencyWidgetState extends State<CurrencyWidget> {
                 ),
                 onTap: () {
                   // Save the selected currency using Cubit
-
                   context.read<CurrencyCubit>().insertUser(
                     name: currency['name'].toString(),
                     symbol: currency['symbol'].toString(),

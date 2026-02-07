@@ -1,7 +1,6 @@
 import 'package:akiba/features/category/cubit/add_new_category_cubit.dart';
 import 'package:akiba/features/category/widget/category_field.dart';
 import 'package:akiba/features/create%20account/cubit/currency_cubit.dart';
-import 'package:akiba/theme/pallete.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
@@ -42,9 +41,11 @@ class _AddCategoryState extends State<AddCategory> {
   }
 
   void _showEmojiPicker() {
+    final theme = Theme.of(context);
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: Pallete.whiteColor,
+      backgroundColor: theme.colorScheme.surface,
       builder: (context) => EmojiPicker(
         onEmojiSelected: (Category? category, Emoji emoji) {
           setState(() {
@@ -60,17 +61,19 @@ class _AddCategoryState extends State<AddCategory> {
             bottom: EmojiPickerItem.categoryBar,
           ),
           searchViewConfig: SearchViewConfig(
-            backgroundColor: Pallete.whiteColor,
+            backgroundColor: theme.colorScheme.surface,
           ),
-          emojiViewConfig: EmojiViewConfig(backgroundColor: Pallete.whiteColor),
+          emojiViewConfig: EmojiViewConfig(
+            backgroundColor: theme.colorScheme.surface,
+          ),
           categoryViewConfig: CategoryViewConfig(
-            backgroundColor: Pallete.whiteColor,
-            indicatorColor: Pallete.greenColor,
-            iconColorSelected: Pallete.greenColor,
-            backspaceColor: Pallete.greenColor,
+            backgroundColor: theme.colorScheme.surface,
+            indicatorColor: theme.colorScheme.primary,
+            iconColorSelected: theme.colorScheme.primary,
+            backspaceColor: theme.colorScheme.primary,
           ),
           bottomActionBarConfig: BottomActionBarConfig(
-            backgroundColor: Pallete.whiteColor,
+            backgroundColor: theme.colorScheme.surface,
           ),
         ),
       ),
@@ -79,6 +82,8 @@ class _AddCategoryState extends State<AddCategory> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(),
       body: BlocConsumer<CategoryCubit, CategoryState>(
@@ -120,14 +125,16 @@ class _AddCategoryState extends State<AddCategory> {
                             child: Container(
                               padding: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
-                                color: Pallete.whiteColor,
+                                color: theme.colorScheme.surface,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Pallete.greyColor),
+                                border: Border.all(
+                                  color: theme.colorScheme.outline,
+                                ),
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.edit,
                                 size: 16,
-                                color: Pallete.greyColor,
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
                             onTap: () {
@@ -148,7 +155,7 @@ class _AddCategoryState extends State<AddCategory> {
                   ),
                   const SizedBox(height: 10),
                   ColorPicker(
-                    borderColor: Pallete.greenColor,
+                    borderColor: theme.colorScheme.primary,
                     subheading: const Text("Select a different shade"),
                     color: selectedColor,
                     onColorChanged: (Color color) {
@@ -163,10 +170,10 @@ class _AddCategoryState extends State<AddCategory> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: ElevatedButton(
                       onPressed: createNewCategory,
-                      child: const Text(
+                      child: Text(
                         "Create",
                         style: TextStyle(
-                          color: Pallete.whiteColor,
+                          color: theme.colorScheme.onPrimary,
                           fontSize: 18,
                         ),
                       ),

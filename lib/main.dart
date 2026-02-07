@@ -6,9 +6,9 @@ import 'package:akiba/features/create%20account/views/country_picker_view.dart';
 import 'package:akiba/features/home/cubit/transaction_cubit.dart';
 import 'package:akiba/features/home/views/home_view.dart';
 import 'package:akiba/models/currency.dart';
+import 'package:akiba/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'theme/app_theme.dart';
 
 void main() {
   runApp(
@@ -18,21 +18,29 @@ void main() {
         BlocProvider(create: (_) => CategoryCubit()),
         BlocProvider(create: (_) => AccountCubit()),
         BlocProvider(create: (_) => TransactionCubit()),
-        BlocProvider(create: (_) => BudgetCubit())
+        BlocProvider(create: (_) => BudgetCubit()),
       ],
-      child: const MyApp(),
+      child: MyApp(),
     ),
   );
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  MyApp({super.key});
 
   @override
   State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
+  ThemeMode themeMode = ThemeMode.light;
+
+  void changeTheme(bool useLightMode) {
+    setState(() {
+      themeMode = useLightMode ? ThemeMode.light : ThemeMode.dark;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -44,13 +52,18 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
-      theme: AppTheme.theme,
+      themeMode: themeMode,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
       home: BlocBuilder<CurrencyCubit, CurrencyState>(
         builder: (context, state) {
           if (state is CurrencyPicked) {
-            return const HomeView();
+            return HomeView(changeTheme: changeTheme);
           }
-          return CountryPickerView(onSelect: (Currency value) {});
+          return CountryPickerView(
+            onSelect: (Currency value) {},
+            changeThemeMode: changeTheme,
+          );
         },
       ),
     );

@@ -3,16 +3,16 @@ import 'package:akiba/features/create%20account/widgets/search_field.dart';
 import 'package:akiba/models/currency.dart';
 import 'package:flutter/material.dart';
 
-
 class CountryPickerView extends StatefulWidget {
+  final void Function(bool) changeThemeMode;
   final ValueChanged<Currency> onSelect;
-
   final String? searchHint;
   final ScrollController? controller;
   final ScrollPhysics? physics;
 
   const CountryPickerView({
     super.key,
+    required this.changeThemeMode,
     required this.onSelect,
     this.searchHint,
     this.controller,
@@ -32,7 +32,7 @@ class _CountryPickerViewState extends State<CountryPickerView> {
     super.initState();
   }
 
-  
+  @override
   void dispose() {
     _searchController?.dispose();
     super.dispose();
@@ -55,7 +55,7 @@ class _CountryPickerViewState extends State<CountryPickerView> {
           ),
           Expanded(
             child: CurrencyWidget(
-              
+              changeThemeMode: widget.changeThemeMode,
             ),
           ),
         ],

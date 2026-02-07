@@ -17,7 +17,7 @@ class TransactionList extends StatefulWidget {
 class _TransactionListState extends State<TransactionList> {
   List<TransactionModel> _transactions = [];
   List<CategoryModel> _categories = [];
-  String _currencySymbol = '\$'; // Default value
+  String _currencySymbol = '\$';
   int _decimalPlaces = 0;
 
   @override
@@ -29,13 +29,11 @@ class _TransactionListState extends State<TransactionList> {
   void _loadData() async {
     CurrencyPicked user = context.read<CurrencyCubit>().state as CurrencyPicked;
 
-    // Load transactions
     final transactions = await context
         .read<TransactionCubit>()
         .transactionLocalRepository
         .getTransactions();
 
-    // Load categories
     final categories = await context
         .read<TransactionCubit>()
         .categoryLocalRepository
@@ -59,8 +57,20 @@ class _TransactionListState extends State<TransactionList> {
     }
   }
 
+  String _formatNumber(double amount) {
+    final formatter = NumberFormat.currency(
+      symbol: _currencySymbol,
+      decimalDigits: _decimalPlaces,
+    );
+    return formatter.format(amount.abs());
+  }
+
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context)
+        .textTheme
+        .apply(displayColor: Theme.of(context).colorScheme.onSurface);
+        
     return BlocListener<TransactionCubit, TransactionState>(
       listener: (context, state) {
         if (state is TransactionStateLoaded) {
@@ -72,7 +82,6 @@ class _TransactionListState extends State<TransactionList> {
   }
 
   Widget _buildTransactionList() {
-    // Group transactions by date
     final Map<String, List<TransactionModel>> groupedTransactions = {};
 
     for (var transaction in _transactions) {
@@ -83,7 +92,6 @@ class _TransactionListState extends State<TransactionList> {
       groupedTransactions[date]!.add(transaction);
     }
 
-    // Sort dates in descending order
     final sortedDates = groupedTransactions.keys.toList()
       ..sort((a, b) => b.compareTo(a));
 
@@ -114,14 +122,13 @@ class _TransactionListState extends State<TransactionList> {
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: Colors.black87,
                         ),
                       ),
                       _buildDailyCashflow(dateTransactions),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  const Divider(height: 1, thickness: 1, color: Colors.grey),
+                  const Divider(height: 1, thickness: 1),
                 ],
               ),
             ),
@@ -155,19 +162,17 @@ class _TransactionListState extends State<TransactionList> {
                     ),
                     title: Text(
                       transaction.transaction_name,
-                      style: const TextStyle(color: Colors.black),
+                      style: const TextStyle(),
                     ),
                     trailing: Text(
-                      '$_currencySymbol${transaction.transaction_amount.toStringAsFixed(_decimalPlaces)}',
+                      _formatNumber(transaction.transaction_amount),
                       style: TextStyle(
                         color: transaction.transaction_type == 'income'
                             ? Colors.green
                             : Colors.red,
                       ),
                     ),
-                    onTap: () {
-                      // Handle transaction tap
-                    },
+                    onTap: () {},
                   ),
                 );
               },
@@ -193,7 +198,7 @@ class _TransactionListState extends State<TransactionList> {
     }
 
     return Text(
-      '$_currencySymbol${dailyCashflow.toStringAsFixed(_decimalPlaces)}',
+      _formatNumber(dailyCashflow),
       style: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w600,

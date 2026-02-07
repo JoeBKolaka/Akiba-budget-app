@@ -339,7 +339,7 @@ class _BarGraphState extends State<BarGraph> {
 
     return Container(
       margin: const EdgeInsets.all(10),
-      color: Pallete.whiteColor,
+
       child: Column(
         children: [
           Row(

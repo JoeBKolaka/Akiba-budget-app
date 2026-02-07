@@ -8,7 +8,7 @@ class UiConstants {
   static List<Widget> bottomTabBarPages = [
     TransactionBody(),
     Statistics(),
-    AccountView(),
+    AccountView(changeTheme: (bool useDarkMode) {  },),
     BudgetView(),
   ];
 

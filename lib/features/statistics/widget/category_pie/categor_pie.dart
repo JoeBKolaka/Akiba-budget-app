@@ -214,7 +214,6 @@ class _CategorPieState extends State<CategorPie> {
           final totalAmount = totalIncome + totalExpense;
 
           return Container(
-            color: Pallete.whiteColor,
             margin: const EdgeInsets.all(10.0),
             child: Column(
               children: [

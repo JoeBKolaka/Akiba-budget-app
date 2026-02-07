@@ -182,7 +182,7 @@ class _AccountTransactionListState extends State<AccountTransactionList> {
     _loadCurrencyData();
     final dailyCashflow = _calculateDailyCashflow(transactions);
     return Text(
-      '$_currencySymbol${dailyCashflow >= 0 ? '+' : ''}${NumberFormat('#,##0.${'0' * _decimalPlaces}').format(dailyCashflow)}',
+      '$_currencySymbol${NumberFormat('#,##0.${'0' * _decimalPlaces}').format(dailyCashflow.abs())}',
       style: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w600,
@@ -204,7 +204,12 @@ class _AccountTransactionListState extends State<AccountTransactionList> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Error: ${state.error}'),
+                Text(
+                  'Error: ${state.error}',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
@@ -227,25 +232,41 @@ class _AccountTransactionListState extends State<AccountTransactionList> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.receipt_long, size: 64, color: Colors.grey[400]),
+                  Icon(
+                    Icons.receipt_long,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     'No transactions found',
-                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Transactions for this period will appear here',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'Account: ${widget.accountId}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   Text(
                     'View: ${widget.selectedView}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -282,20 +303,20 @@ class _AccountTransactionListState extends State<AccountTransactionList> {
                           children: [
                             Text(
                               formattedDate,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.black87,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                             _buildDailyCashflow(dateTransactions),
                           ],
                         ),
                         const SizedBox(height: 8),
-                        const Divider(
+                        Divider(
                           height: 1,
                           thickness: 1,
-                          color: Colors.grey,
+                          color: Theme.of(context).colorScheme.outline,
                         ),
                       ],
                     ),
@@ -330,7 +351,9 @@ class _AccountTransactionListState extends State<AccountTransactionList> {
                           ),
                           title: Text(
                             transaction.transaction_name,
-                            style: const TextStyle(color: Colors.black),
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                           ),
                           subtitle: Text(
                             DateFormat(
@@ -338,7 +361,9 @@ class _AccountTransactionListState extends State<AccountTransactionList> {
                             ).format(transaction.created_at),
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey[600],
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                             ),
                           ),
                           trailing: Text(
@@ -362,7 +387,12 @@ class _AccountTransactionListState extends State<AccountTransactionList> {
           );
         }
 
-        return const Center(child: Text('No transactions found'));
+        return Center(
+          child: Text(
+            'No transactions found',
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+          ),
+        );
       },
     );
   }

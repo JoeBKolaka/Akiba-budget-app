@@ -47,7 +47,6 @@ class _AccountBottomSheetState extends State<AccountBottomSheet> {
       },
       builder: (context, state) {
         return Container(
-          color: Colors.white,
           height: 360,
           child: Form(
             key: formKey,

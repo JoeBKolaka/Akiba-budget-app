@@ -1,7 +1,6 @@
 import 'package:akiba/features/budget/view/add_budget.dart';
 import 'package:akiba/features/budget/widget/budget_card.dart';
 import 'package:akiba/features/budget/widget/budget_pie.dart';
-import 'package:akiba/theme/pallete.dart';
 import 'package:flutter/material.dart';
 
 class BudgetView extends StatefulWidget {
@@ -33,7 +32,8 @@ class _BudgetViewState extends State<BudgetView> {
         onPressed: () {
           Navigator.push(context, AddBudget.route());
         },
-        child: const Icon(Icons.add, color: Pallete.whiteColor, size: 28),
+        child: Icon(Icons.add, color: Theme.of(context).colorScheme.onPrimary),
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
     );
   }

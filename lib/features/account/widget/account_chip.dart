@@ -40,7 +40,7 @@ class _AccountChipState extends State<AccountChip> {
         return '💰';
       case 'loans':
         return '🏦';
-      case 'checkings':
+      case 'normal':
         return '💳';
       default:
         return '🏦';
@@ -65,7 +65,8 @@ class _AccountChipState extends State<AccountChip> {
               onTap: () {
                 // Pass both account ID and name
                 widget.onTap?.call(
-                  _accounts[index].id, // id is already String, no need for toString()
+                  _accounts[index]
+                      .id, // id is already String, no need for toString()
                   _accounts[index].account_name,
                 );
               },

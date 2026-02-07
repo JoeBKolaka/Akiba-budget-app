@@ -233,39 +233,9 @@ class _StatisticsListState extends State<StatisticsList> {
     final filteredTransactions = _filterTransactions();
     final totalTransactions = filteredTransactions.length;
 
-    double totalAmount = 0;
-    for (var transaction in filteredTransactions) {
-      totalAmount += transaction.transaction_amount;
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 16),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Number of Transactions ($totalTransactions)',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Text(
-                '$_currencySymbol${totalAmount.toStringAsFixed(_decimalPlaces)}',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.green,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
         Expanded(
           child: categoryCounts.isEmpty
               ? const Center(child: Text('No transactions for this period'))
@@ -293,20 +263,23 @@ class _StatisticsListState extends State<StatisticsList> {
                       ),
                       title: Text(
                         category?.name ?? 'Unknown',
-                        style: const TextStyle(color: Colors.black),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
                       subtitle: Text(
-                        '$_currencySymbol${amount.toStringAsFixed(_decimalPlaces)}',
-                        style: const TextStyle(
+                        '$_currencySymbol${amount.abs().toStringAsFixed(_decimalPlaces)}',
+                        style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                       trailing: Text(
                         '$count',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                       onTap: () {

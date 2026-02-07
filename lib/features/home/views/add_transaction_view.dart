@@ -11,10 +11,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 class AddTransactionView extends StatefulWidget {
-  static route() =>
-      MaterialPageRoute(builder: (context) => const AddTransactionView());
+  final void Function(bool) changeThemeMode;
 
-  const AddTransactionView({super.key});
+  static MaterialPageRoute route(void Function(bool) changeThemeMode) =>
+      MaterialPageRoute(
+        builder: (context) =>
+            AddTransactionView(changeThemeMode: changeThemeMode),
+      );
+
+  const AddTransactionView({super.key, required this.changeThemeMode});
 
   @override
   State<AddTransactionView> createState() => _AddTransactionViewState();
@@ -29,7 +34,6 @@ class _AddTransactionViewState extends State<AddTransactionView> {
   String? _selectedAccountId;
   String? _selectedAccountName;
 
-  // Add state for selected category
   String? _selectedCategoryId;
   String? _selectedCategoryName;
   String? _selectedCategoryEmoji;
@@ -94,6 +98,8 @@ class _AddTransactionViewState extends State<AddTransactionView> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: TransactionTypeSelector(
@@ -108,7 +114,10 @@ class _AddTransactionViewState extends State<AddTransactionView> {
       body: BlocConsumer<TransactionCubit, TransactionState>(
         listener: (context, state) {
           if (state is TransactionStateLoaded) {
-            Navigator.pop(context, HomeView());
+            Navigator.pop(
+              context,
+              HomeView(changeTheme: widget.changeThemeMode),
+            );
           }
         },
         builder: (context, state) {
@@ -139,6 +148,7 @@ class _AddTransactionViewState extends State<AddTransactionView> {
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
                             DateFormat("MMM-dd-y").format(selectedDate),
+                            style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ),
                       ),
@@ -153,7 +163,6 @@ class _AddTransactionViewState extends State<AddTransactionView> {
               ),
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                color: Colors.white,
                 child: Row(
                   children: [
                     InputChip(
@@ -169,8 +178,10 @@ class _AddTransactionViewState extends State<AddTransactionView> {
                             )
                           : Text('Category'),
                       backgroundColor: _selectedCategoryName != null
-                          ? Colors.green.shade100
+                          ? theme.colorScheme.surfaceVariant
                           : null,
+                      labelStyle: Theme.of(context).textTheme.labelLarge,
+
                       onPressed: _showCategoryBottomSheet,
                       deleteIcon: _selectedCategoryName != null
                           ? Icon(Icons.close, size: 18)
@@ -191,8 +202,9 @@ class _AddTransactionViewState extends State<AddTransactionView> {
                           ? Text(_selectedAccountName!)
                           : Text('Account'),
                       backgroundColor: _selectedAccountName != null
-                          ? Colors.blue.shade100
+                          ? theme.colorScheme.surfaceVariant
                           : null,
+                      labelStyle: Theme.of(context).textTheme.labelLarge,
                       onPressed: _showAccountBottomSheet,
                       deleteIcon: _selectedAccountName != null
                           ? Icon(Icons.close, size: 18)

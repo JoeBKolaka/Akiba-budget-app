@@ -148,6 +148,7 @@ class CategoryTransactionList extends StatelessWidget {
           );
 
           return _buildTransactionList(
+            context,
             filteredTransactions,
             currencySymbol,
             decimalPlaces,
@@ -160,17 +161,21 @@ class CategoryTransactionList extends StatelessWidget {
   }
 
   Widget _buildTransactionList(
+    BuildContext context,
     List<TransactionModel> transactions,
     String currencySymbol,
     int decimalPlaces,
   ) {
     if (transactions.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Text(
             'No transactions for this period',
-            style: TextStyle(fontSize: 16, color: Colors.grey),
+            style: TextStyle(
+              fontSize: 16,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
       );
@@ -192,13 +197,17 @@ class CategoryTransactionList extends StatelessWidget {
     return Column(
       children: [
         const SizedBox(height: 16),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Align(
             alignment: Alignment.centerLeft,
             child: Text(
               'Transactions',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
             ),
           ),
         ),
@@ -238,14 +247,14 @@ class CategoryTransactionList extends StatelessWidget {
                         children: [
                           Text(
                             formattedDate,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: Colors.black87,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                           Text(
-                            '$currencySymbol${NumberFormat('#,##0.${'0' * decimalPlaces}').format(dailyCashflow)}',
+                            '$currencySymbol${NumberFormat('#,##0.${'0' * decimalPlaces}').format(dailyCashflow.abs())}',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -257,10 +266,10 @@ class CategoryTransactionList extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      const Divider(
+                      Divider(
                         height: 1,
                         thickness: 1,
-                        color: Colors.grey,
+                        color: Theme.of(context).colorScheme.outline,
                       ),
                     ],
                   ),
@@ -291,14 +300,21 @@ class CategoryTransactionList extends StatelessWidget {
                         ),
                         title: Text(
                           transaction.transaction_name,
-                          style: const TextStyle(color: Colors.black),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
                         ),
                         subtitle: Text(
                           DateFormat('h:mm a').format(transaction.created_at),
-                          style: const TextStyle(fontSize: 12),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
                         ),
                         trailing: Text(
-                          '$currencySymbol${NumberFormat('#,##0.${'0' * decimalPlaces}').format(transaction.transaction_amount)}',
+                          '$currencySymbol${NumberFormat('#,##0.${'0' * decimalPlaces}').format(transaction.transaction_amount.abs())}',
                           style: TextStyle(
                             color: transaction.transaction_type == 'income'
                                 ? Colors.green

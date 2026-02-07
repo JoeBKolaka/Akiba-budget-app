@@ -2,10 +2,9 @@ import 'package:akiba/features/budget/cubit/budget_cubit.dart';
 import 'package:akiba/features/category/cubit/add_new_category_cubit.dart';
 import 'package:akiba/features/home/cubit/transaction_cubit.dart';
 import 'package:akiba/models/budget_model.dart';
-import 'package:akiba/theme/pallete.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:intl/intl.dart';
 import '../../../models/category_model.dart';
 import '../../create account/cubit/currency_cubit.dart';
 
@@ -103,6 +102,10 @@ class _BudgetCardState extends State<BudgetCard> {
     }
   }
 
+  String _formatNumber(double value) {
+    return NumberFormat('#,##0.${'0' * _decimalPlaces}').format(value);
+  }
+
   double _getSpentAmount(BudgetModel budget, String period) {
     final spending = _spendingData[budget.id];
     if (spending != null) {
@@ -164,10 +167,12 @@ class _BudgetCardState extends State<BudgetCard> {
             final overspentAmount = spent - budget.budget_amount;
 
             return Card(
-              color: Pallete.whiteColor,
               elevation: 0,
               shape: RoundedRectangleBorder(
-                side: const BorderSide(color: Pallete.greyColor, width: 1),
+                side: BorderSide(
+                  color: Theme.of(context).colorScheme.outline,
+                  width: 1,
+                ),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Padding(
@@ -194,8 +199,8 @@ class _BudgetCardState extends State<BudgetCard> {
                         Expanded(
                           child: Text(
                             category?.name ?? 'Sijui',
-                            style: const TextStyle(
-                              color: Colors.black87,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),
@@ -212,16 +217,16 @@ class _BudgetCardState extends State<BudgetCard> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Spent: $_currencySymbol${spent.toStringAsFixed(_decimalPlaces)}',
-                            style: const TextStyle(
-                              color: Colors.black87,
+                            'Spent: $_currencySymbol${_formatNumber(spent)}',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 12,
                             ),
                           ),
                           Text(
-                            'Budget: $_currencySymbol${budget.budget_amount.toStringAsFixed(_decimalPlaces)}',
-                            style: const TextStyle(
-                              color: Colors.black87,
+                            'Budget: $_currencySymbol${_formatNumber(budget.budget_amount)}',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 12,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -241,8 +246,8 @@ class _BudgetCardState extends State<BudgetCard> {
                               ),
                               Text(
                                 isOverspent
-                                    ? '$_currencySymbol${overspentAmount.toStringAsFixed(_decimalPlaces)}'
-                                    : '$_currencySymbol${remaining.toStringAsFixed(_decimalPlaces)}',
+                                    ? '$_currencySymbol${_formatNumber(overspentAmount)}'
+                                    : '$_currencySymbol${_formatNumber(remaining)}',
                                 style: TextStyle(
                                   color: isOverspent
                                       ? Colors.red
@@ -255,8 +260,10 @@ class _BudgetCardState extends State<BudgetCard> {
                           ),
                           Text(
                             _calculateDaysLeft(budget),
-                            style: const TextStyle(
-                              color: Colors.black54,
+                            style: TextStyle(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                               fontSize: 10,
                             ),
                           ),

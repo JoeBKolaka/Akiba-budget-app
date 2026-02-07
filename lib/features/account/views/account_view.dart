@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AccountView extends StatefulWidget {
-  const AccountView({super.key});
+  final void Function(bool useLightMode) changeTheme;
+
+  const AccountView({super.key, required this.changeTheme});
 
   @override
   State<AccountView> createState() => _AccountViewState();
@@ -32,14 +34,12 @@ class _AccountViewState extends State<AccountView> {
         automaticallyImplyLeading: false,
         title: const Text('Accounts'),
         actions: [
-          
           BlocBuilder<TransactionCubit, TransactionState>(
             builder: (context, state) {
               double totalNetWorth = 12367778;
 
-             
               if (state is TransactionStateLoaded) {
-               
+                // Calculate net worth here if needed
               }
 
               return Padding(
@@ -68,7 +68,8 @@ class _AccountViewState extends State<AccountView> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showBottomSheet,
-        child: const Icon(Icons.add),
+        child: Icon(Icons.add, color: Theme.of(context).colorScheme.onPrimary),
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
     );
   }

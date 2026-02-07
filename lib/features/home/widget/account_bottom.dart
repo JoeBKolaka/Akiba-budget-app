@@ -14,7 +14,6 @@ class _AccountBottomState extends State<AccountBottom> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
       height: 300,
       child: Column(
         children: [

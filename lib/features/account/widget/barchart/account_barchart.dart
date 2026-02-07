@@ -1,5 +1,4 @@
 import 'package:akiba/features/home/cubit/transaction_cubit.dart';
-import 'package:akiba/theme/pallete.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -12,7 +11,7 @@ class AccountBarchart extends StatefulWidget {
   final String accountName;
   final DateTime selectedDate;
   final String selectedView;
-  
+
   final Function(String, int, int, int)? onViewChanged;
 
   const AccountBarchart({
@@ -126,7 +125,7 @@ class _AccountBarchartState extends State<AccountBarchart> {
   void _calculateCashflow() {
     final cubit = context.read<TransactionCubit>();
     _loadCurrencyData();
-    
+
     if (cubit.state is! TransactionStateLoaded) {
       return;
     }
@@ -379,7 +378,6 @@ class _AccountBarchartState extends State<AccountBarchart> {
 
     return Container(
       margin: const EdgeInsets.all(10),
-      color: Pallete.whiteColor,
       child: Column(
         children: [
           Row(
@@ -390,11 +388,18 @@ class _AccountBarchartState extends State<AccountBarchart> {
                 children: [
                   Text(
                     'Cashflow',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
                   Text(
                     widget.accountName,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -418,11 +423,38 @@ class _AccountBarchartState extends State<AccountBarchart> {
                   });
                 },
                 itemBuilder: (context) => [
-                  const PopupMenuItem(value: 'weekly', child: Text('Weekly')),
-                  const PopupMenuItem(value: 'monthly', child: Text('Monthly')),
-                  const PopupMenuItem(value: 'yearly', child: Text('Yearly')),
+                  PopupMenuItem(
+                    value: 'weekly',
+                    child: Text(
+                      'Weekly',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'monthly',
+                    child: Text(
+                      'Monthly',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'yearly',
+                    child: Text(
+                      'Yearly',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
                 ],
-                icon: const Icon(Icons.more_vert),
+                icon: Icon(
+                  Icons.more_vert,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
             ],
           ),
@@ -439,13 +471,6 @@ class _AccountBarchartState extends State<AccountBarchart> {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                _totalCashflow >= 0 ? '(+)' : '(-)',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: _totalCashflow >= 0 ? Colors.green : Colors.red,
-                ),
-              ),
             ],
           ),
           Expanded(
@@ -506,7 +531,12 @@ class _AccountBarchartState extends State<AccountBarchart> {
                               padding: const EdgeInsets.only(top: 8.0),
                               child: Text(
                                 DateFormat('E').format(date),
-                                style: const TextStyle(fontSize: 12),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
+                                ),
                               ),
                             );
                           } else if (widget.selectedView == 'monthly') {
@@ -515,7 +545,12 @@ class _AccountBarchartState extends State<AccountBarchart> {
                                 padding: const EdgeInsets.only(top: 8.0),
                                 child: Text(
                                   '${index + 1}',
-                                  style: const TextStyle(fontSize: 11),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface,
+                                  ),
                                 ),
                               );
                             }
@@ -526,7 +561,12 @@ class _AccountBarchartState extends State<AccountBarchart> {
                               padding: const EdgeInsets.only(top: 8.0),
                               child: Text(
                                 DateFormat('MMM').format(dates[monthIndex]),
-                                style: const TextStyle(fontSize: 11),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
+                                ),
                               ),
                             );
                           }
@@ -575,9 +615,17 @@ class _AccountBarchartState extends State<AccountBarchart> {
                       }
                     });
                   },
-                  icon: const Icon(Icons.arrow_back),
+                  icon: Icon(
+                    Icons.arrow_back,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
-                Text(dateRange),
+                Text(
+                  dateRange,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
                 IconButton(
                   onPressed: () {
                     final newWeekOffset = widget.selectedView == 'weekly'
@@ -607,7 +655,10 @@ class _AccountBarchartState extends State<AccountBarchart> {
                       }
                     });
                   },
-                  icon: const Icon(Icons.arrow_forward),
+                  icon: Icon(
+                    Icons.arrow_forward,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
               ],
             ),
