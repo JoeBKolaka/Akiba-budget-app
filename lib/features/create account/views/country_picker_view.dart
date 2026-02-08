@@ -45,14 +45,7 @@ class _CountryPickerViewState extends State<CountryPickerView> {
       body: Column(
         children: [
           const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            child: SearchField(),
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.0),
-            child: Divider(thickness: 1),
-          ),
+         
           Expanded(
             child: CurrencyWidget(
               changeThemeMode: widget.changeThemeMode,

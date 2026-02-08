@@ -31,23 +31,39 @@ class _BudgetCardState extends State<BudgetCard> {
       final hoursLeft = nextDay.difference(now).inHours;
       return '$hoursLeft hours left';
     } else if (period == '1') {
-      final nextMonday = DateTime(
+      final daysUntilSaturday = (DateTime.saturday - now.weekday) % 7;
+      final nextSaturday = DateTime(
         now.year,
         now.month,
-        now.day + (8 - now.weekday) % 7,
+        now.day + daysUntilSaturday,
       );
-      final daysLeft = nextMonday.difference(now).inDays;
-      return '$daysLeft days left';
+      final nextSaturdayMidnight = DateTime(
+        nextSaturday.year,
+        nextSaturday.month,
+        nextSaturday.day + 1,
+      );
+      final totalHours = nextSaturdayMidnight.difference(now).inHours;
+      if (totalHours > 24) {
+        return '${(totalHours / 24).ceil()} days left';
+      } else {
+        return '$totalHours hours left';
+      }
     } else if (period == '2') {
       final nextMonth = DateTime(now.year, now.month + 1, 1);
       final totalHours = nextMonth.difference(now).inHours;
-      final daysLeft = (totalHours / 24).ceil();
-      return '$daysLeft days left';
+      if (totalHours > 24) {
+        return '${(totalHours / 24).ceil()} days left';
+      } else {
+        return '$totalHours hours left';
+      }
     } else if (period == '3') {
       final nextYear = DateTime(now.year + 1, 1, 1);
       final totalHours = nextYear.difference(now).inHours;
-      final daysLeft = (totalHours / 24).ceil();
-      return '$daysLeft days left';
+      if (totalHours > 24) {
+        return '${(totalHours / 24).ceil()} days left';
+      } else {
+        return '$totalHours hours left';
+      }
     }
     return '';
   }

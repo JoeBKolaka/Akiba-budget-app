@@ -25,19 +25,19 @@ class _AmmountTextfieldState extends State<AmmountTextfield> {
     _amountController = widget.controller ?? TextEditingController();
     
     _formatter = FlutterCurrencyTextInputFormatter(
-      maxDecimalDigits: 2,
+      maxDecimalDigits: user.user.decimal_digits,
       decimalSeparator: '.', 
       thousandSeparator: ',', 
       leadingSymbol: user.user.symbol, 
     );
     
-    // Set initial value to 0.00
-    if (_amountController.text.isEmpty) {
-      _amountController.text = _formatter.formatEditUpdate(
-        TextEditingValue.empty,
-        const TextEditingValue(text: '0.00'),
-      ).text;
-    }
+    
+    //if (_amountController.text.isEmpty) {
+    //  _amountController.text = _formatter.formatEditUpdate(
+    //    TextEditingValue.empty,
+    //    const TextEditingValue(text: ''),
+    //  ).text;
+    //}
   }
 
   @override

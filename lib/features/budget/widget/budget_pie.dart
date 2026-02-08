@@ -24,6 +24,7 @@ class _BudgetPieState extends State<BudgetPie> {
   String _currencySymbol = '\$';
   int _decimalPlaces = 0;
   Map<String, Map<String, double>> _spendingData = {};
+  int? _touchedIndex;
 
   @override
   void initState() {
@@ -163,27 +164,28 @@ class _BudgetPieState extends State<BudgetPie> {
           sectionColor = defaultColors[i % defaultColors.length];
         }
 
-        String categoryName = 'Cat';
+        String categoryEmoji = 'Cat';
         if (category != null &&
-            category.name != null &&
-            category.name!.isNotEmpty) {
-          categoryName = category.name!.substring(
+            category.emoji != null &&
+            category.emoji!.isNotEmpty) {
+          categoryEmoji = category.emoji!.substring(
             0,
-            category.name!.length > 4 ? 4 : category.name!.length,
+            category.emoji!.length > 4 ? 4 : category.emoji!.length,
           );
         }
 
         sections.add(
           PieChartSectionData(
+            showTitle: _touchedIndex == i,
+            titlePositionPercentageOffset: 3,
             value: meanAmount,
             color: sectionColor,
-            radius: 15,
+            radius: _touchedIndex == i ? 18 : 15,
             title:
-                '$_currencySymbol${_formatNumber(meanAmount)}\n$categoryName',
-            titleStyle: Theme.of(context).textTheme.bodySmall!.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+                '$_currencySymbol${_formatNumber(meanAmount)}\n$categoryEmoji',
+            titleStyle: Theme.of(
+              context,
+            ).textTheme.bodySmall!.copyWith(fontWeight: FontWeight.bold),
           ),
         );
       }
@@ -196,10 +198,9 @@ class _BudgetPieState extends State<BudgetPie> {
           color: Pallete.greyColor,
           radius: 15,
           title: 'No\nBudgets',
-          titleStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+          titleStyle: Theme.of(
+            context,
+          ).textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.bold),
         ),
       );
     }
@@ -319,6 +320,20 @@ class _BudgetPieState extends State<BudgetPie> {
                 children: [
                   PieChart(
                     PieChartData(
+                      pieTouchData: PieTouchData(
+                        touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                          setState(() {
+                            if (event is FlTapUpEvent ||
+                                event is FlPanStartEvent) {
+                              _touchedIndex = pieTouchResponse
+                                  ?.touchedSection
+                                  ?.touchedSectionIndex;
+                            } else {
+                              _touchedIndex = null;
+                            }
+                          });
+                        },
+                      ),
                       sections: _getPieSections(),
                       centerSpaceRadius: 100,
                     ),

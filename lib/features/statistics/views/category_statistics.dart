@@ -69,9 +69,10 @@ class _CategoryStatisticsState extends State<CategoryStatistics> {
           
           return SingleChildScrollView(
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.45,
+                  height: 400,
                   child: CategorPie(
                     categoryId: widget.categoryId,
                     selectedView: _selectedView,

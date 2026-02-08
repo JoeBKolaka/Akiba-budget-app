@@ -45,11 +45,11 @@ class _CurrencyWidgetState extends State<CurrencyWidget> {
                 ),
                 title: Text(
                   currency['name'].toString(),
-                  style: const TextStyle(fontSize: 20, color: Colors.black),
+                  style: const TextStyle(fontSize: 16, color: Colors.black),
                 ),
                 subtitle: Text(
                   currency['symbol'].toString(),
-                  style: const TextStyle(fontSize: 16, color: Colors.black),
+                  style: const TextStyle(fontSize: 12, color: Colors.black),
                 ),
                 onTap: () {
                   // Save the selected currency using Cubit

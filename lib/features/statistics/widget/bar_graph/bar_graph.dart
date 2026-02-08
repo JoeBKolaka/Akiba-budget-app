@@ -382,7 +382,7 @@ class _BarGraphState extends State<BarGraph> {
               ),
               const SizedBox(width: 8),
               Text(
-                _totalCashflow >= 0 ? '(+)' : '(-)',
+                '',
                 style: TextStyle(
                   fontSize: 16,
                   color: _totalCashflow >= 0 ? Colors.green : Colors.red,

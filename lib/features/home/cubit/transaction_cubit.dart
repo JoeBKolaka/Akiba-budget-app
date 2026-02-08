@@ -13,17 +13,20 @@ class TransactionCubit extends Cubit<TransactionState> {
     _init();
   }
 
-  final TransactionLocalRepository _transactionLocalRepository = TransactionLocalRepository();
-  final CategoryLocalRepository _categoryLocalRepository = CategoryLocalRepository();
-  final AccountLocalRepository _accountLocalRepository = AccountLocalRepository();
+  final TransactionLocalRepository _transactionLocalRepository =
+      TransactionLocalRepository();
+  final CategoryLocalRepository _categoryLocalRepository =
+      CategoryLocalRepository();
+  final AccountLocalRepository _accountLocalRepository =
+      AccountLocalRepository();
   final Uuid _uuid = Uuid();
 
-  
-  TransactionLocalRepository get transactionLocalRepository => _transactionLocalRepository;
-  CategoryLocalRepository get categoryLocalRepository => _categoryLocalRepository;
+  TransactionLocalRepository get transactionLocalRepository =>
+      _transactionLocalRepository;
+  CategoryLocalRepository get categoryLocalRepository =>
+      _categoryLocalRepository;
   AccountLocalRepository get accountLocalRepository => _accountLocalRepository;
 
-  
   Future<void> _init() async {
     await loadTransactions();
   }
@@ -39,32 +42,51 @@ class TransactionCubit extends Cubit<TransactionState> {
     try {
       emit(TransactionStateLoading());
 
-      // Get account details
       final account = await _accountLocalRepository.getAccountById(account_id);
       if (account == null) {
         emit(TransactionStateError('Account not found'));
         return;
       }
 
-      // Calculate new account amount
       double updatedAmount = account.ammount;
-      
-      if (transaction_type == 'income') {
-        updatedAmount += transaction_amount;
-      } else if (transaction_type == 'expense') {
-        updatedAmount -= transaction_amount;
-        
-        final accountType = account.account_type.toLowerCase();
-        if (accountType == 'saving' && updatedAmount < 0) {
-          emit(TransactionStateError('Cannot have negative balance in saving account'));
-          return;
-        } else if (accountType == 'checking' && updatedAmount < 0) {
-          emit(TransactionStateError('Insufficient funds in checking account'));
-          return;
+      final accountType = account.account_type.toLowerCase();
+
+      if (accountType == 'loan') {
+        if (transaction_type == 'income') {
+          updatedAmount -= transaction_amount;
+          if (updatedAmount < 0) {
+            emit(
+              TransactionStateError(
+                'Paying too much - cannot have negative loan balance',
+              ),
+            );
+            return;
+          }
+        } else if (transaction_type == 'expense') {
+          updatedAmount += transaction_amount;
+        }
+      } else {
+        if (transaction_type == 'income') {
+          updatedAmount += transaction_amount;
+        } else if (transaction_type == 'expense') {
+          updatedAmount -= transaction_amount;
+
+          if (accountType == 'saving' && updatedAmount < 0) {
+            emit(
+              TransactionStateError(
+                'Cannot have negative balance in saving account',
+              ),
+            );
+            return;
+          } else if (accountType == 'normal' && updatedAmount < 0) {
+            emit(
+              TransactionStateError('Insufficient funds in checking account'),
+            );
+            return;
+          }
         }
       }
 
-      // Create transaction model
       final transactionModel = TransactionModel(
         id: _uuid.v4(),
         user_id: user_id,
@@ -76,7 +98,6 @@ class TransactionCubit extends Cubit<TransactionState> {
         created_at: DateTime.now(),
       );
 
-      // Insert transaction
       await _transactionLocalRepository.insertTransaction(
         transactionModel,
         user_id: user_id,
@@ -84,12 +105,12 @@ class TransactionCubit extends Cubit<TransactionState> {
         account_id: account_id,
       );
 
-      // Update account balance
-      await _accountLocalRepository.updateAccountAmount(account_id, updatedAmount);
+      await _accountLocalRepository.updateAccountAmount(
+        account_id,
+        updatedAmount,
+      );
 
-      // Reload all transactions
       await loadTransactions();
-      
     } catch (e) {
       print('Error creating transaction: $e');
       emit(TransactionStateError(e.toString()));
@@ -108,10 +129,9 @@ class TransactionCubit extends Cubit<TransactionState> {
   Future<void> loadTransactions() async {
     try {
       emit(TransactionStateLoading());
-      
+
       final transactions = await _transactionLocalRepository.getTransactions();
       emit(TransactionStateLoaded(transactions));
-      
     } catch (e) {
       print('Error loading transactions: $e');
       emit(TransactionStateError(e.toString()));
@@ -126,9 +146,12 @@ class TransactionCubit extends Cubit<TransactionState> {
     return [];
   }
 
-  Future<List<TransactionModel>> getTransactionsByCategoryId(String categoryId) async {
+  Future<List<TransactionModel>> getTransactionsByCategoryId(
+    String categoryId,
+  ) async {
     try {
-      final allTransactions = await _transactionLocalRepository.getTransactions();
+      final allTransactions = await _transactionLocalRepository
+          .getTransactions();
       final categoryTransactions = allTransactions
           .where((transaction) => transaction.category_id == categoryId)
           .toList();
@@ -145,25 +168,30 @@ class TransactionCubit extends Cubit<TransactionState> {
     DateTime? endDate,
   }) async {
     try {
-      final allTransactions = await _transactionLocalRepository.getTransactions();
-      
+      final allTransactions = await _transactionLocalRepository
+          .getTransactions();
+
       List<TransactionModel> filteredTransactions = allTransactions
           .where((transaction) => transaction.category_id == categoryId)
           .toList();
 
       if (startDate != null) {
         filteredTransactions = filteredTransactions
-            .where((transaction) => 
-                transaction.created_at.isAfter(startDate) || 
-                transaction.created_at.isAtSameMomentAs(startDate))
+            .where(
+              (transaction) =>
+                  transaction.created_at.isAfter(startDate) ||
+                  transaction.created_at.isAtSameMomentAs(startDate),
+            )
             .toList();
       }
 
       if (endDate != null) {
         filteredTransactions = filteredTransactions
-            .where((transaction) => 
-                transaction.created_at.isBefore(endDate) || 
-                transaction.created_at.isAtSameMomentAs(endDate))
+            .where(
+              (transaction) =>
+                  transaction.created_at.isBefore(endDate) ||
+                  transaction.created_at.isAtSameMomentAs(endDate),
+            )
             .toList();
       }
 
@@ -174,9 +202,12 @@ class TransactionCubit extends Cubit<TransactionState> {
     }
   }
 
-  Future<List<TransactionModel>> getTransactionsByAccountId(String accountId) async {
+  Future<List<TransactionModel>> getTransactionsByAccountId(
+    String accountId,
+  ) async {
     try {
-      final allTransactions = await _transactionLocalRepository.getTransactions();
+      final allTransactions = await _transactionLocalRepository
+          .getTransactions();
       final accountTransactions = allTransactions
           .where((transaction) => transaction.account_id == accountId)
           .toList();
@@ -193,25 +224,30 @@ class TransactionCubit extends Cubit<TransactionState> {
     DateTime? endDate,
   }) async {
     try {
-      final allTransactions = await _transactionLocalRepository.getTransactions();
-      
+      final allTransactions = await _transactionLocalRepository
+          .getTransactions();
+
       List<TransactionModel> filteredTransactions = allTransactions
           .where((transaction) => transaction.account_id == accountId)
           .toList();
 
       if (startDate != null) {
         filteredTransactions = filteredTransactions
-            .where((transaction) => 
-                transaction.created_at.isAfter(startDate) || 
-                transaction.created_at.isAtSameMomentAs(startDate))
+            .where(
+              (transaction) =>
+                  transaction.created_at.isAfter(startDate) ||
+                  transaction.created_at.isAtSameMomentAs(startDate),
+            )
             .toList();
       }
 
       if (endDate != null) {
         filteredTransactions = filteredTransactions
-            .where((transaction) => 
-                transaction.created_at.isBefore(endDate) || 
-                transaction.created_at.isAtSameMomentAs(endDate))
+            .where(
+              (transaction) =>
+                  transaction.created_at.isBefore(endDate) ||
+                  transaction.created_at.isAtSameMomentAs(endDate),
+            )
             .toList();
       }
 
@@ -235,11 +271,7 @@ class TransactionCubit extends Cubit<TransactionState> {
       );
     } catch (e) {
       print('Error getting account totals: $e');
-      return {
-        'income': 0.0,
-        'expense': 0.0,
-        'net': 0.0,
-      };
+      return {'income': 0.0, 'expense': 0.0, 'net': 0.0};
     }
   }
 
@@ -283,11 +315,8 @@ class TransactionCubit extends Cubit<TransactionState> {
           endDate,
         );
       } else {
-        barchartData = await _transactionLocalRepository.getMonthlyAccountTotals(
-          accountId,
-          startDate,
-          endDate,
-        );
+        barchartData = await _transactionLocalRepository
+            .getMonthlyAccountTotals(accountId, startDate, endDate);
       }
 
       // Get transactions for the SAME account and SAME date range
