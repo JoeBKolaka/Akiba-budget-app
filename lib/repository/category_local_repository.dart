@@ -71,4 +71,24 @@ class CategoryLocalRepository {
     }
     return null;
   }
+
+  Future<void> updateCategory({
+    required String name,
+    required String emoji,
+    required String hex_color,
+    required String user_id,
+  }) async {
+    final db = await database;
+    await db.update(
+      tableName,
+      {
+        'name': name,
+        'emoji': emoji,
+        'hex_color': hex_color,
+        'user_id': user_id,
+      },
+      where: 'name = ? AND user_id = ?',
+      whereArgs: [name, user_id],
+    );
+  }
 }

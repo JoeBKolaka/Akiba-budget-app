@@ -1,19 +1,20 @@
 part of 'account_cubit.dart';
 
-sealed class AccountState {
-  AccountState();
+abstract class AccountState {}
+
+class AccountInitial extends AccountState {}
+
+class AccountStateAdd extends AccountState {
+  final AccountModel account;
+  AccountStateAdd(this.account);
 }
 
-final class AccountInitial extends AccountState {}
-
-final class AccountStateError extends AccountState {
-  final String error;
-
-  AccountStateError(this.error);
+class AccountStateLoaded extends AccountState {
+  final List<AccountModel> accounts;
+  AccountStateLoaded(this.accounts);
 }
 
-final class AccountStateAdd extends AccountState {
-  final AccountModel accountModel;
-
-  AccountStateAdd(this.accountModel);
+class AccountStateError extends AccountState {
+  final String message;
+  AccountStateError(this.message);
 }

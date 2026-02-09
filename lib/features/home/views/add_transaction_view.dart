@@ -39,12 +39,48 @@ class _AddTransactionViewState extends State<AddTransactionView> {
   String? _selectedCategoryEmoji;
 
   void createNewTransaction() async {
+    if (_selectedAccountId == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select an account')));
+      return;
+    }
+
+    if (_selectedCategoryId == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a category')));
+      return;
+    }
+
+    if (_amountController.text.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please enter an amount')));
+      return;
+    }
+
+    if (_transactionController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a transaction name')),
+      );
+      return;
+    }
+
     CurrencyPicked user = context.read<CurrencyCubit>().state as CurrencyPicked;
     String amountText = _amountController.text
         .replaceAll(user.user.symbol, '')
         .replaceAll(',', '')
         .trim();
     double amount = double.tryParse(amountText) ?? 0.0;
+
+    if (amount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid amount')),
+      );
+      return;
+    }
+
     await context.read<TransactionCubit>().createTransaction(
       user_id: user.user.id,
       category_id: _selectedCategoryId!,

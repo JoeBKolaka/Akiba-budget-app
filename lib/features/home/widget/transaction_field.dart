@@ -32,7 +32,7 @@ class _TransactionFieldState extends State<TransactionField> {
       height: 36,
       width: 180,
       child: TextField(
-        controller: _controller, 
+        controller: _controller,
         textAlign: TextAlign.center,
         cursorHeight: 12,
         decoration: InputDecoration(

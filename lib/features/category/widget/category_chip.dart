@@ -1,11 +1,11 @@
+import 'package:akiba/features/category/view/edit_category.dart';
 import 'package:akiba/models/category_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:akiba/features/category/cubit/add_new_category_cubit.dart';
 
 class CategoryChip extends StatefulWidget {
-  final VoidCallback? ontap;
-  const CategoryChip({super.key, this.ontap});
+  const CategoryChip({super.key});
 
   @override
   State<CategoryChip> createState() => _CategoryChipState();
@@ -36,7 +36,7 @@ class _CategoryChipState extends State<CategoryChip> {
   Widget build(BuildContext context) {
     return BlocListener<CategoryCubit, CategoryState>(
       listener: (context, state) {
-        if (state is CategoryStateAdd) {
+        if (state is CategoryStateAdd || state is CategoryStateUpdate) {
           _loadCategories();
         }
       },
@@ -47,7 +47,15 @@ class _CategoryChipState extends State<CategoryChip> {
           alignment: WrapAlignment.center,
           children: List.generate(_categories.length, (index) {
             return InkWell(
-              onTap: widget.ontap,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        CategoryEditPage(category: _categories[index]),
+                  ),
+                );
+              },
               child: Chip(
                 avatar: CircleAvatar(
                   backgroundColor: Colors.transparent,

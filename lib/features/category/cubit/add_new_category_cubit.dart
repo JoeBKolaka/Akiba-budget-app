@@ -36,4 +36,23 @@ class CategoryCubit extends Cubit<CategoryState> {
       emit(CategoryStateError('Failed to save: $e '));
     }
   }
+
+  Future<void> updateCategory({
+    required String name,
+    required String emoji,
+    required Color color,
+    required String user_id,
+  }) async {
+    try {
+      await categoryLocalRepository.updateCategory(
+        name: name,
+        emoji: emoji,
+        hex_color: rgbToHex(color),
+        user_id: user_id,
+      );
+      emit(CategoryStateUpdate());
+    } catch (e) {
+      emit(CategoryStateError(e.toString()));
+    }
+  }
 }

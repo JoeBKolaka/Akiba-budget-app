@@ -139,13 +139,47 @@ class _BudgetCardState extends State<BudgetCard> {
     return 'month';
   }
 
+  Future<void> _deleteBudget(BuildContext context, BudgetModel budget) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Budget'),
+        content: const Text('Are you sure you want to delete this budget?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await context.read<BudgetCubit>().deleteBudget(budget.id);
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Budget deleted')));
+      } catch (e) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error deleting budget: $e')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocListener(
       listeners: [
         BlocListener<BudgetCubit, BudgetState>(
           listener: (context, state) {
-            if (state is BudgetStateAdd) {
+            if (state is BudgetStateAdd || state is BudgetStateDelete) {
               _loadBudgets();
             }
           },
@@ -182,111 +216,116 @@ class _BudgetCardState extends State<BudgetCard> {
             final isOverspent = spent > budget.budget_amount;
             final overspentAmount = spent - budget.budget_amount;
 
-            return Card(
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                side: BorderSide(
-                  color: Theme.of(context).colorScheme.outline,
-                  width: 1,
+            return GestureDetector(
+              onLongPress: () {
+                _deleteBudget(context, budget);
+              },
+              child: Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.outline,
+                    width: 1,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: category != null
-                              ? category.color
-                              : Colors.grey,
-                          radius: 14,
-                          child: Center(
-                            child: Text(
-                              category?.emoji ?? '💰',
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            category?.name ?? 'Sijui',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
                         children: [
-                          Text(
-                            'Spent: $_currencySymbol${_formatNumber(spent)}',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface,
-                              fontSize: 12,
+                          CircleAvatar(
+                            backgroundColor: category != null
+                                ? category.color
+                                : Colors.grey,
+                            radius: 14,
+                            child: Center(
+                              child: Text(
+                                category?.emoji ?? '💰',
+                                style: const TextStyle(fontSize: 12),
+                              ),
                             ),
                           ),
-                          Text(
-                            'Budget: $_currencySymbol${_formatNumber(budget.budget_amount)}',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface,
-                              fontSize: 12,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                isOverspent ? 'Overspent' : 'Left',
-                                style: TextStyle(
-                                  color: isOverspent
-                                      ? Colors.red
-                                      : Colors.green,
-                                  fontSize: 10,
-                                ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              category?.name ?? 'Sijui',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
                               ),
-                              Text(
-                                isOverspent
-                                    ? '$_currencySymbol${_formatNumber(overspentAmount)}'
-                                    : '$_currencySymbol${_formatNumber(remaining)}',
-                                style: TextStyle(
-                                  color: isOverspent
-                                      ? Colors.red
-                                      : Colors.green,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Text(
-                            _calculateDaysLeft(budget),
-                            style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
-                              fontSize: 10,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Spent: $_currencySymbol${_formatNumber(spent)}',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
+                                fontSize: 12,
+                              ),
+                            ),
+                            Text(
+                              'Budget: $_currencySymbol${_formatNumber(budget.budget_amount)}',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
+                                fontSize: 12,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  isOverspent ? 'Overspent' : 'Left',
+                                  style: TextStyle(
+                                    color: isOverspent
+                                        ? Colors.red
+                                        : Colors.green,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                                Text(
+                                  isOverspent
+                                      ? '$_currencySymbol${_formatNumber(overspentAmount)}'
+                                      : '$_currencySymbol${_formatNumber(remaining)}',
+                                  style: TextStyle(
+                                    color: isOverspent
+                                        ? Colors.red
+                                        : Colors.green,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              _calculateDaysLeft(budget),
+                              style: TextStyle(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );

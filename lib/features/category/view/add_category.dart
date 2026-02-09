@@ -22,16 +22,31 @@ class _AddCategoryState extends State<AddCategory> {
   final formKey = GlobalKey<FormState>();
 
   void createNewCategory() async {
-    if (formKey.currentState!.validate()) {
-      CurrencyPicked user =
-          context.read<CurrencyCubit>().state as CurrencyPicked;
-      await context.read<CategoryCubit>().createNewCategory(
-        name: categoryController.text.trim(),
-        emoji: selectedEmoji,
-        color: selectedColor,
-        user_id: user.user.id,
-      );
+    if (!formKey.currentState!.validate()) {
+      return;
     }
+
+    if (categoryController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a category name')),
+      );
+      return;
+    }
+
+    if (selectedEmoji.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select an emoji')));
+      return;
+    }
+
+    CurrencyPicked user = context.read<CurrencyCubit>().state as CurrencyPicked;
+    await context.read<CategoryCubit>().createNewCategory(
+      name: categoryController.text.trim(),
+      emoji: selectedEmoji,
+      color: selectedColor,
+      user_id: user.user.id,
+    );
   }
 
   @override
@@ -45,35 +60,41 @@ class _AddCategoryState extends State<AddCategory> {
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: theme.colorScheme.surface,
-      builder: (context) => EmojiPicker(
-        onEmojiSelected: (Category? category, Emoji emoji) {
-          setState(() {
-            selectedEmoji = emoji.emoji;
-          });
-          Navigator.pop(context);
-        },
-        onBackspacePressed: () {},
-        config: Config(
-          viewOrderConfig: ViewOrderConfig(
-            top: EmojiPickerItem.searchBar,
-            middle: EmojiPickerItem.emojiView,
-            bottom: EmojiPickerItem.categoryBar,
-          ),
-          searchViewConfig: SearchViewConfig(
-            backgroundColor: theme.colorScheme.surface,
-          ),
-          emojiViewConfig: EmojiViewConfig(
-            backgroundColor: theme.colorScheme.surface,
-          ),
-          categoryViewConfig: CategoryViewConfig(
-            backgroundColor: theme.colorScheme.surface,
-            indicatorColor: theme.colorScheme.primary,
-            iconColorSelected: theme.colorScheme.primary,
-            backspaceColor: theme.colorScheme.primary,
-          ),
-          bottomActionBarConfig: BottomActionBarConfig(
-            backgroundColor: theme.colorScheme.surface,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: EmojiPicker(
+          onEmojiSelected: (Category? category, Emoji emoji) {
+            setState(() {
+              selectedEmoji = emoji.emoji;
+            });
+            Navigator.pop(context);
+          },
+          onBackspacePressed: () {},
+          config: Config(
+            viewOrderConfig: ViewOrderConfig(
+              top: EmojiPickerItem.searchBar,
+              middle: EmojiPickerItem.emojiView,
+              bottom: EmojiPickerItem.categoryBar,
+            ),
+            searchViewConfig: SearchViewConfig(
+              backgroundColor: theme.colorScheme.surface,
+            ),
+            emojiViewConfig: EmojiViewConfig(
+              backgroundColor: theme.colorScheme.surface,
+            ),
+            categoryViewConfig: CategoryViewConfig(
+              backgroundColor: theme.colorScheme.surface,
+              indicatorColor: theme.colorScheme.primary,
+              iconColorSelected: theme.colorScheme.primary,
+              backspaceColor: theme.colorScheme.primary,
+            ),
+            bottomActionBarConfig: BottomActionBarConfig(
+              backgroundColor: theme.colorScheme.surface,
+            ),
           ),
         ),
       ),
@@ -100,86 +121,99 @@ class _AddCategoryState extends State<AddCategory> {
           }
         },
         builder: (context, state) {
-          return Center(
-            child: Form(
-              key: formKey,
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        CircleAvatar(
-                          radius: 64,
-                          backgroundColor: selectedColor,
-                          child: Text(
-                            selectedEmoji,
-                            style: const TextStyle(fontSize: 52),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: GestureDetector(
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.surface,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: theme.colorScheme.outline,
-                                ),
-                              ),
-                              child: Icon(
-                                Icons.edit,
-                                size: 16,
-                                color: theme.colorScheme.onSurfaceVariant,
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: Center(
+              child: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            CircleAvatar(
+                              radius: 64,
+                              backgroundColor: selectedColor,
+                              child: Text(
+                                selectedEmoji,
+                                style: const TextStyle(fontSize: 52),
                               ),
                             ),
-                            onTap: () {
-                              _showEmojiPicker();
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 20, right: 20),
-                    child: CategoryField(
-                      controller: categoryController,
-                      hintText: 'Category',
-                      lable: 'Category',
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  ColorPicker(
-                    borderColor: theme.colorScheme.primary,
-                    subheading: const Text("Select a different shade"),
-                    color: selectedColor,
-                    onColorChanged: (Color color) {
-                      setState(() {
-                        selectedColor = color;
-                      });
-                    },
-                    pickersEnabled: const {ColorPickerType.wheel: true},
-                  ),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: ElevatedButton(
-                      onPressed: createNewCategory,
-                      child: Text(
-                        "Create",
-                        style: TextStyle(
-                          color: theme.colorScheme.onPrimary,
-                          fontSize: 18,
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: GestureDetector(
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.surface,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: theme.colorScheme.outline,
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    Icons.edit,
+                                    size: 16,
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                onTap: () {
+                                  _showEmojiPicker();
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 20, right: 20),
+                        child: CategoryField(
+                          controller: categoryController,
+                          hintText: 'Category',
+                          lable: 'Category',
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      ColorPicker(
+                        borderColor: theme.colorScheme.primary,
+                        subheading: const Text("Select a different shade"),
+                        color: selectedColor,
+                        onColorChanged: (Color color) {
+                          setState(() {
+                            selectedColor = color;
+                          });
+                        },
+                        pickersEnabled: const {ColorPickerType.wheel: true},
+                      ),
+                      const SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: ElevatedButton(
+                          onPressed: createNewCategory,
+                          child: Text(
+                            "Create",
+                            style: TextStyle(
+                              color: theme.colorScheme.onPrimary,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: MediaQuery.of(context).viewInsets.bottom > 0
+                            ? 100
+                            : 0,
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           );

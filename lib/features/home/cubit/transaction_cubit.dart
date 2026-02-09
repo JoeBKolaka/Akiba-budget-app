@@ -146,6 +146,64 @@ class TransactionCubit extends Cubit<TransactionState> {
     return [];
   }
 
+  Future<void> deleteTransaction(String transactionId) async {
+    try {
+      emit(TransactionStateLoading());
+
+      // Get the transaction to get account info
+      final transaction = await _transactionLocalRepository.getTransactionById(
+        transactionId,
+      );
+      if (transaction == null) {
+        emit(TransactionStateError('Transaction not found'));
+        return;
+      }
+
+      // Get the account to update its balance
+      final account = await _accountLocalRepository.getAccountById(
+        transaction.account_id,
+      );
+      if (account == null) {
+        emit(TransactionStateError('Account not found'));
+        return;
+      }
+
+      // Update account balance by reversing the transaction
+      double updatedAmount = account.ammount;
+      final accountType = account.account_type.toLowerCase();
+
+      if (accountType == 'loan') {
+        if (transaction.transaction_type == 'income') {
+          updatedAmount += transaction.transaction_amount;
+        } else if (transaction.transaction_type == 'expense') {
+          updatedAmount -= transaction.transaction_amount;
+        }
+      } else {
+        if (transaction.transaction_type == 'income') {
+          updatedAmount -= transaction.transaction_amount;
+        } else if (transaction.transaction_type == 'expense') {
+          updatedAmount += transaction.transaction_amount;
+        }
+      }
+
+      // Update account balance
+      await _accountLocalRepository.updateAccountAmount(
+        account.id,
+        updatedAmount,
+      );
+
+      // Delete the transaction
+      await _transactionLocalRepository.deleteTransaction(transactionId);
+
+      // Reload transactions
+      await loadTransactions();
+    } catch (e) {
+      print('Error deleting transaction: $e');
+      emit(TransactionStateError(e.toString()));
+    }
+  }
+
+  // Keep other methods as they were...
   Future<List<TransactionModel>> getTransactionsByCategoryId(
     String categoryId,
   ) async {
@@ -275,7 +333,6 @@ class TransactionCubit extends Cubit<TransactionState> {
     }
   }
 
-  // THE KEY METHOD: Gets both barchart data AND transactions for the same date range
   Future<Map<String, dynamic>> getAccountDataForBarchart(
     String accountId,
     String viewType,
@@ -288,7 +345,6 @@ class TransactionCubit extends Cubit<TransactionState> {
       DateTime endDate;
       final now = DateTime.now();
 
-      // Calculate date range based on view type and offsets
       if (viewType == 'weekly') {
         final baseDate = now.add(Duration(days: 7 * weekOffset));
         startDate = baseDate.subtract(Duration(days: baseDate.weekday - 1));
@@ -301,12 +357,10 @@ class TransactionCubit extends Cubit<TransactionState> {
         startDate = DateTime(year, 1, 1);
         endDate = DateTime(year, 12, 31);
       } else {
-        // All time - last 12 months
         endDate = now;
         startDate = now.subtract(const Duration(days: 365));
       }
 
-      // Get barchart data
       Map<DateTime, double> barchartData;
       if (viewType == 'weekly' || viewType == 'monthly') {
         barchartData = await _transactionLocalRepository.getDailyAccountTotals(
@@ -319,14 +373,12 @@ class TransactionCubit extends Cubit<TransactionState> {
             .getMonthlyAccountTotals(accountId, startDate, endDate);
       }
 
-      // Get transactions for the SAME account and SAME date range
       final transactions = await getTransactionsByAccountAndDateRange(
         accountId,
         startDate: startDate,
         endDate: endDate,
       );
 
-      // Return everything needed
       return {
         'barchartData': barchartData,
         'transactions': transactions,

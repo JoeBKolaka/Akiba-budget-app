@@ -1,25 +1,23 @@
 part of 'budget_cubit.dart';
 
-sealed class BudgetState {
-  const BudgetState();
-}
+sealed class BudgetState {}
 
 final class BudgetStateInitial extends BudgetState {}
 
 final class BudgetStateAdd extends BudgetState {
-  final BudgetModel budgetModel;
+  final BudgetModel budget;
 
-  const BudgetStateAdd(this.budgetModel);
+  BudgetStateAdd(this.budget);
+}
+
+final class BudgetStateDelete extends BudgetState {
+  final String budgetId;
+
+  BudgetStateDelete(this.budgetId);
 }
 
 final class BudgetStateError extends BudgetState {
   final String error;
 
   BudgetStateError(this.error);
-}
-
-final class BudgetStateGet extends BudgetState {
-  final List<BudgetModel> budgets;
-
-  const BudgetStateGet(this.budgets);
 }

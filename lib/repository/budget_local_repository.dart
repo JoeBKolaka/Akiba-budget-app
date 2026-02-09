@@ -73,4 +73,13 @@ class BudgetLocalRepository {
     }
     return [];
   }
+
+  Future<void> deleteBudget(String id) async {
+    final db = await database;
+    await db.delete(
+      tableName,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
 }

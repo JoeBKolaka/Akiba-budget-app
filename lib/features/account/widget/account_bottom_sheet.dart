@@ -20,21 +20,44 @@ class _AccountBottomSheetState extends State<AccountBottomSheet> {
   final formKey = GlobalKey<FormState>();
 
   void createNewAccount() async {
-    if (formKey.currentState!.validate()) {
-      CurrencyPicked user =
-          context.read<CurrencyCubit>().state as CurrencyPicked;
-      String amountText = _amountController.text
-          .replaceAll(user.user.symbol, '')
-          .replaceAll(',', '')
-          .trim();
-      double amount = double.tryParse(amountText) ?? 0.0;
-      await context.read<AccountCubit>().createNewAccount(
-        account_name: _accountController.text.trim(),
-        ammount: amount,
-        account_type: selectedAccount.name,
-        user_id: user.user.id,
-      );
+    if (!formKey.currentState!.validate()) {
+      return;
     }
+
+    if (_accountController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter account name')),
+      );
+      return;
+    }
+
+    if (_amountController.text.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please enter amount')));
+      return;
+    }
+
+    CurrencyPicked user = context.read<CurrencyCubit>().state as CurrencyPicked;
+    String amountText = _amountController.text
+        .replaceAll(user.user.symbol, '')
+        .replaceAll(',', '')
+        .trim();
+    double amount = double.tryParse(amountText) ?? 0.0;
+
+    if (amount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid amount')),
+      );
+      return;
+    }
+
+    await context.read<AccountCubit>().createNewAccount(
+      account_name: _accountController.text.trim(),
+      ammount: amount,
+      account_type: selectedAccount.name,
+      user_id: user.user.id,
+    );
   }
 
   @override
@@ -46,96 +69,100 @@ class _AccountBottomSheetState extends State<AccountBottomSheet> {
         }
       },
       builder: (context, state) {
-        return Container(
-          height: 360,
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
           child: Form(
             key: formKey,
             child: Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Center(
-                child: Column(
-                  children: [
-                    Text(
-                      'Account Details',
-                      style: Theme.of(context).textTheme.headlineSmall,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Account Details',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    controller: _accountController,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter account name',
                     ),
-                    const SizedBox(height: 20),
-                    TextFormField(
-                      controller: _accountController,
-                      decoration: const InputDecoration(
-                        hintText: 'Enter account name',
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter account name';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  AmmountTextfield(controller: _amountController),
+                  const SizedBox(height: 12),
+                  SegmentedButton<AccountType>(
+                    selected: {selectedAccount},
+                    segments: const <ButtonSegment<AccountType>>[
+                      ButtonSegment<AccountType>(
+                        value: AccountType.normal,
+                        label: Text('Normal'),
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter account name';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    AmmountTextfield(controller: _amountController),
-                    const SizedBox(height: 12),
-                    SegmentedButton<AccountType>(
-                      selected: {selectedAccount},
-                      segments: const <ButtonSegment<AccountType>>[
-                        ButtonSegment<AccountType>(
-                          value: AccountType.normal,
-                          label: Text('Normal'),
-                        ),
-                        ButtonSegment<AccountType>(
-                          value: AccountType.savings,
-                          label: Text('Savings'),
-                        ),
-                        ButtonSegment<AccountType>(
-                          value: AccountType.loan,
-                          label: Text('Loan'),
-                        ),
-                      ],
-                      onSelectionChanged: (Set<AccountType> newSelection) {
-                        setState(() {
-                          selectedAccount = newSelection.first;
-                        });
-                      },
-                      style: ButtonStyle(
-                        backgroundColor:
-                            MaterialStateProperty.resolveWith<Color>((
-                              Set<MaterialState> states,
-                            ) {
-                              return Colors.transparent;
-                            }),
-                        foregroundColor:
-                            MaterialStateProperty.resolveWith<Color>((
-                              Set<MaterialState> states,
-                            ) {
-                              return states.contains(MaterialState.selected)
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Colors.grey;
-                            }),
-                        side: MaterialStateProperty.all<BorderSide>(
-                          const BorderSide(color: Colors.transparent),
-                        ),
-                        elevation: MaterialStateProperty.all<double>(0),
-                        shadowColor: MaterialStateProperty.all<Color>(
-                          Colors.transparent,
-                        ),
-                        overlayColor: MaterialStateProperty.all<Color>(
-                          Colors.transparent,
-                        ),
-                        surfaceTintColor: MaterialStateProperty.all<Color>(
-                          Colors.transparent,
-                        ),
-                        padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
-                          EdgeInsets.zero,
-                        ),
+                      ButtonSegment<AccountType>(
+                        value: AccountType.savings,
+                        label: Text('Savings'),
+                      ),
+                      ButtonSegment<AccountType>(
+                        value: AccountType.loan,
+                        label: Text('Loan'),
+                      ),
+                    ],
+                    onSelectionChanged: (Set<AccountType> newSelection) {
+                      setState(() {
+                        selectedAccount = newSelection.first;
+                      });
+                    },
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                        (Set<MaterialState> states) {
+                          return Colors.transparent;
+                        },
+                      ),
+                      foregroundColor: MaterialStateProperty.resolveWith<Color>(
+                        (Set<MaterialState> states) {
+                          return states.contains(MaterialState.selected)
+                              ? Theme.of(context).colorScheme.primary
+                              : Colors.grey;
+                        },
+                      ),
+                      side: MaterialStateProperty.all<BorderSide>(
+                        const BorderSide(color: Colors.transparent),
+                      ),
+                      elevation: MaterialStateProperty.all<double>(0),
+                      shadowColor: MaterialStateProperty.all<Color>(
+                        Colors.transparent,
+                      ),
+                      overlayColor: MaterialStateProperty.all<Color>(
+                        Colors.transparent,
+                      ),
+                      surfaceTintColor: MaterialStateProperty.all<Color>(
+                        Colors.transparent,
+                      ),
+                      padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
+                        EdgeInsets.zero,
                       ),
                     ),
-                    const Spacer(),
-                    ElevatedButton(
-                      onPressed: createNewAccount,
-                      child: const Text('Save'),
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: createNewAccount,
+                    child: const Text('Save'),
+                  ),
+                  SizedBox(
+                    height: MediaQuery.of(context).viewInsets.bottom > 0
+                        ? 20
+                        : 0,
+                  ),
+                ],
               ),
             ),
           ),

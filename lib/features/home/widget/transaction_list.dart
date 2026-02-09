@@ -20,6 +20,9 @@ class _TransactionListState extends State<TransactionList> {
   String _currencySymbol = '\$';
   int _decimalPlaces = 0;
 
+  // Track which transactions are being deleted to prevent rebuilding issues
+  final Set<String> _deletingTransactions = {};
+
   @override
   void initState() {
     super.initState();
@@ -29,11 +32,6 @@ class _TransactionListState extends State<TransactionList> {
   void _loadData() async {
     CurrencyPicked user = context.read<CurrencyCubit>().state as CurrencyPicked;
 
-    final transactions = await context
-        .read<TransactionCubit>()
-        .transactionLocalRepository
-        .getTransactions();
-
     final categories = await context
         .read<TransactionCubit>()
         .categoryLocalRepository
@@ -41,10 +39,10 @@ class _TransactionListState extends State<TransactionList> {
 
     if (mounted) {
       setState(() {
-        _transactions = transactions;
         _categories = categories;
         _currencySymbol = user.user.symbol;
         _decimalPlaces = user.user.decimal_digits;
+        _deletingTransactions.clear(); // Clear any pending deletions
       });
     }
   }
@@ -65,26 +63,54 @@ class _TransactionListState extends State<TransactionList> {
     return formatter.format(amount.abs());
   }
 
+  Future<void> _handleDelete(TransactionModel transaction) async {
+    // Mark this transaction as being deleted
+    setState(() {
+      _deletingTransactions.add(transaction.id);
+    });
+
+    // Call the cubit to delete
+    await context.read<TransactionCubit>().deleteTransaction(transaction.id);
+
+    // Remove from deleting set after a short delay
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        setState(() {
+          _deletingTransactions.remove(transaction.id);
+        });
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context)
-        .textTheme
-        .apply(displayColor: Theme.of(context).colorScheme.onSurface);
-        
-    return BlocListener<TransactionCubit, TransactionState>(
+    return BlocConsumer<TransactionCubit, TransactionState>(
       listener: (context, state) {
         if (state is TransactionStateLoaded) {
-          _loadData();
+          setState(() {
+            _transactions = state.transactions;
+          });
         }
       },
-      child: _buildTransactionList(),
+      builder: (context, state) {
+        if (state is TransactionStateError) {
+          return Center(child: Text('Error: ${state.error}'));
+        }
+
+        return _buildTransactionList();
+      },
     );
   }
 
   Widget _buildTransactionList() {
+    // Filter out transactions that are being deleted
+    final visibleTransactions = _transactions
+        .where((transaction) => !_deletingTransactions.contains(transaction.id))
+        .toList();
+
     final Map<String, List<TransactionModel>> groupedTransactions = {};
 
-    for (var transaction in _transactions) {
+    for (var transaction in visibleTransactions) {
       final date = DateFormat('yyyy-MM-dd').format(transaction.created_at);
       if (!groupedTransactions.containsKey(date)) {
         groupedTransactions[date] = [];
@@ -144,35 +170,53 @@ class _TransactionListState extends State<TransactionList> {
                 );
 
                 return Padding(
+                  key: ValueKey(
+                    transaction.id,
+                  ), // Use ValueKey instead of Key in Dismissible
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8.0,
                     vertical: 4.0,
                   ),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: category != null
-                          ? category.color
-                          : Colors.grey,
-                      child: Center(
-                        child: Text(
-                          category?.emoji ?? '💰',
-                          style: const TextStyle(),
+                  child: Dismissible(
+                    key: Key(
+                      'dismissible_${transaction.id}',
+                    ), // Unique key for dismissible
+                    direction: DismissDirection.endToStart,
+                    background: Container(
+                      color: Colors.red,
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.only(right: 20),
+                      child: const Icon(Icons.delete, color: Colors.white),
+                    ),
+                    onDismissed: (direction) {
+                      _handleDelete(transaction);
+                    },
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: category != null
+                            ? category.color
+                            : Colors.grey,
+                        child: Center(
+                          child: Text(
+                            category?.emoji ?? '💰',
+                            style: const TextStyle(),
+                          ),
                         ),
                       ),
-                    ),
-                    title: Text(
-                      transaction.transaction_name,
-                      style: const TextStyle(),
-                    ),
-                    trailing: Text(
-                      _formatNumber(transaction.transaction_amount),
-                      style: TextStyle(
-                        color: transaction.transaction_type == 'income'
-                            ? Colors.green
-                            : Colors.red,
+                      title: Text(
+                        transaction.transaction_name,
+                        style: const TextStyle(),
                       ),
+                      trailing: Text(
+                        _formatNumber(transaction.transaction_amount),
+                        style: TextStyle(
+                          color: transaction.transaction_type == 'income'
+                              ? Colors.green
+                              : Colors.red,
+                        ),
+                      ),
+                      onTap: () {},
                     ),
-                    onTap: () {},
                   ),
                 );
               },

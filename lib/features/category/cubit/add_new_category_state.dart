@@ -23,5 +23,5 @@ final class CategoryStateGet extends CategoryState {
 
   const CategoryStateGet(this.categories);
 }
-
+final class CategoryStateUpdate extends CategoryState {}
 //final class CategoryStateInitial extends CategoryState {}

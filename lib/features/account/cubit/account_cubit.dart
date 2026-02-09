@@ -34,4 +34,32 @@ class AccountCubit extends Cubit<AccountState> {
       emit(AccountStateError(e.toString()));
     }
   }
+
+  Future<void> fetchAccounts() async {
+    try {
+      final accounts = await accountLocalRepository.getAccounts();
+      emit(AccountStateLoaded(accounts));
+    } catch (e) {
+      emit(AccountStateError(e.toString()));
+    }
+  }
+
+  Future<double> calculateNetWorth() async {
+    try {
+      final accounts = await accountLocalRepository.getAccounts();
+      double totalNetWorth = 0.0;
+      
+      for (var account in accounts) {
+        if (account.account_type == 'loans') {
+          totalNetWorth -= account.ammount;
+        } else {
+          totalNetWorth += account.ammount;
+        }
+      }
+      
+      return totalNetWorth;
+    } catch (e) {
+      return 0.0;
+    }
+  }
 }

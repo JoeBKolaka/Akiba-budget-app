@@ -73,4 +73,18 @@ class BudgetCubit extends Cubit<BudgetState> {
       return {'today': 0.0, 'week': 0.0, 'month': 0.0, 'year': 0.0};
     }
   }
+
+  Future<void> deleteBudget(String budgetId) async {
+    try {
+      final db = await budgetLocalRepository.database;
+      await db.delete(
+        'budgets',
+        where: 'id = ?',
+        whereArgs: [budgetId],
+      );
+      emit(BudgetStateDelete(budgetId));
+    } catch (e) {
+      emit(BudgetStateError(e.toString()));
+    }
+  }
 }
