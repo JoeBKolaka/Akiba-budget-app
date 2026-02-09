@@ -228,7 +228,6 @@ class _BudgetLeftPieState extends State<BudgetLeftPie> {
           value: 1,
           color: Pallete.greyColor,
           radius: 15,
-
           titleStyle: Theme.of(
             context,
           ).textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.bold),

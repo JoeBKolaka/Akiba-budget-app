@@ -1,5 +1,3 @@
-// ignore_for_file: unnecessary_null_comparison
-
 import 'package:akiba/features/home/cubit/transaction_cubit.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +23,7 @@ class _BudgetPieState extends State<BudgetPie> {
   late List<CategoryModel> _categories = [];
   String _currencySymbol = '\$';
   int _decimalPlaces = 0;
+  Map<String, Map<String, double>> _spendingData = {};
   int? _touchedIndex;
 
   @override
@@ -56,6 +55,7 @@ class _BudgetPieState extends State<BudgetPie> {
       setState(() {
         _budgets = budgets;
         _categories = categories;
+        _spendingData = spendingData;
         _currencySymbol = user.user.symbol;
         _decimalPlaces = user.user.decimal_digits;
       });
@@ -159,7 +159,7 @@ class _BudgetPieState extends State<BudgetPie> {
       if (meanAmount > 0) {
         Color sectionColor;
         if (category != null && category.color != null) {
-          sectionColor = category.color;
+          sectionColor = category.color!;
         } else {
           sectionColor = defaultColors[i % defaultColors.length];
         }
@@ -167,10 +167,10 @@ class _BudgetPieState extends State<BudgetPie> {
         String categoryEmoji = 'Cat';
         if (category != null &&
             category.emoji != null &&
-            category.emoji.isNotEmpty) {
-          categoryEmoji = category.emoji.substring(
+            category.emoji!.isNotEmpty) {
+          categoryEmoji = category.emoji!.substring(
             0,
-            category.emoji.length > 4 ? 4 : category.emoji.length,
+            category.emoji!.length > 4 ? 4 : category.emoji!.length,
           );
         }
 
@@ -197,6 +197,7 @@ class _BudgetPieState extends State<BudgetPie> {
           value: 1,
           color: Pallete.greyColor,
           radius: 15,
+          title: 'No\nBudgets',
           titleStyle: Theme.of(
             context,
           ).textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.bold),
