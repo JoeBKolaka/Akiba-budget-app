@@ -169,10 +169,10 @@ class _AddTransactionViewState extends State<AddTransactionView> {
                         onTap: () async {
                           final _selectedDate = await showDatePicker(
                             context: context,
-                            firstDate: DateTime.now(),
-                            lastDate: DateTime.now().add(
-                              const Duration(days: 90),
+                            firstDate: DateTime.now().add(
+                              const Duration(days: -200),
                             ),
+                            lastDate: DateTime.now(),
                           );
                           if (_selectedDate != null) {
                             setState(() {

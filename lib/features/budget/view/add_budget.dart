@@ -146,9 +146,20 @@ class _AddBudgetState extends State<AddBudget> {
                 ],
               ),
               Spacer(),
-              ElevatedButton(
-                onPressed: createNewTransaction,
-                child: Text('Save'),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                  ),
+                  onPressed: createNewTransaction,
+                  child: Text(
+                    'Add Budget',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

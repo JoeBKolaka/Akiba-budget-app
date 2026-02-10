@@ -339,7 +339,11 @@ class _BarGraphState extends State<BarGraph> {
 
     return Container(
       margin: const EdgeInsets.all(10),
-
+      // Add a fixed height or use constraints
+      constraints: BoxConstraints(
+        minHeight: 300,
+        maxHeight: MediaQuery.of(context).size.height * 0.5,
+      ),
       child: Column(
         children: [
           Row(
@@ -390,7 +394,9 @@ class _BarGraphState extends State<BarGraph> {
               ),
             ],
           ),
-          Expanded(
+          // REMOVE Expanded and add SizedBox with fixed height
+          SizedBox(
+            height: 200, // Fixed height for the chart
             child: Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
               child: BarChart(

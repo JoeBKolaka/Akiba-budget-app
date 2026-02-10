@@ -192,7 +192,11 @@ class _BudgetCardState extends State<BudgetCard> {
           },
         ),
         BlocListener<CategoryCubit, CategoryState>(
-          listener: (context, state) {},
+          listener: (context, state) {
+            if (state is CategoryStateUpdate) {
+              _getCategoryForBudget;
+            }
+          },
         ),
       ],
       child: Padding(
@@ -254,7 +258,6 @@ class _BudgetCardState extends State<BudgetCard> {
                             child: Text(
                               category?.name ?? 'Sijui',
                               style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -272,17 +275,11 @@ class _BudgetCardState extends State<BudgetCard> {
                           children: [
                             Text(
                               'Spent: $_currencySymbol${_formatNumber(spent)}',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface,
-                                fontSize: 12,
-                              ),
+                              style: TextStyle(fontSize: 12),
                             ),
                             Text(
                               'Budget: $_currencySymbol${_formatNumber(budget.budget_amount)}',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface,
-                                fontSize: 12,
-                              ),
+                              style: TextStyle(fontSize: 12),
                               overflow: TextOverflow.ellipsis,
                               maxLines: 1,
                             ),
@@ -314,12 +311,7 @@ class _BudgetCardState extends State<BudgetCard> {
                             ),
                             Text(
                               _calculateDaysLeft(budget),
-                              style: TextStyle(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                                fontSize: 10,
-                              ),
+                              style: TextStyle(color: Colors.grey.shade500),
                             ),
                           ],
                         ),

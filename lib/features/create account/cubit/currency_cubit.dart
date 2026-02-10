@@ -17,6 +17,7 @@ class CurrencyCubit extends Cubit<CurrencyState> {
       if (userModel != null) {
         emit(CurrencyPicked(userModel));
       } else {
+        emit(CurrencyPick());
       }
     } catch (e) {
       emit(CurrencyError('Failed to get user: $e'));

@@ -37,40 +37,41 @@ class _AccountStatisticsState extends State<AccountStatistics> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(widget.accountName)),
-      body: BlocBuilder<TransactionCubit, TransactionState>(
-        builder: (context, state) {
-          return Column(
-            children: [
-              AspectRatio(
-                aspectRatio: 0.9,
-                child: AccountBarchart(
-                  key: ValueKey(widget.accountId),
-                  accountId: widget.accountId,
-                  accountName: widget.accountName,
-                  selectedView: selectedView,
-                  selectedDate: selectedDate,
-                  onViewChanged: (view, week, month, year) {
-                    setState(() {
-                      selectedView = view;
-                      weekOffset = week;
-                      monthOffset = month;
-                      yearOffset = year;
-                    });
-                  },
+      body: SingleChildScrollView(
+        //physics: const BouncingScrollPhysics(),
+        child: BlocBuilder<TransactionCubit, TransactionState>(
+          builder: (context, state) {
+            return Column(
+              children: [
+                AspectRatio(
+                  aspectRatio: 0.9,
+                  child: AccountBarchart(
+                    key: ValueKey(widget.accountId),
+                    accountId: widget.accountId,
+                    accountName: widget.accountName,
+                    selectedView: selectedView,
+                    selectedDate: selectedDate,
+                    onViewChanged: (view, week, month, year) {
+                      setState(() {
+                        selectedView = view;
+                        weekOffset = week;
+                        monthOffset = month;
+                        yearOffset = year;
+                      });
+                    },
+                  ),
                 ),
-              ),
-              Expanded(
-                child: AccountTransactionList(
+                AccountTransactionList(
                   accountId: widget.accountId,
                   selectedView: selectedView,
                   weekOffset: weekOffset,
                   monthOffset: monthOffset,
                   yearOffset: yearOffset,
                 ),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }

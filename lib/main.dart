@@ -3,6 +3,7 @@ import 'package:akiba/features/budget/cubit/budget_cubit.dart';
 import 'package:akiba/features/category/cubit/add_new_category_cubit.dart';
 import 'package:akiba/features/create%20account/cubit/currency_cubit.dart';
 import 'package:akiba/features/create%20account/views/country_picker_view.dart';
+import 'package:akiba/features/create%20account/views/hero_page.dart';
 import 'package:akiba/features/home/cubit/transaction_cubit.dart';
 import 'package:akiba/features/home/views/home_view.dart';
 import 'package:akiba/models/currency.dart';
@@ -33,7 +34,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  ThemeMode themeMode = ThemeMode.light;
+  ThemeMode themeMode = ThemeMode.system;
 
   void changeTheme(bool useLightMode) {
     setState(() {
@@ -51,19 +52,25 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'Akiba',
       themeMode: themeMode,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       home: BlocBuilder<CurrencyCubit, CurrencyState>(
         builder: (context, state) {
+          if (state is CurrencyInitial) {
+            return HeroPage();
+          }
+          if (state is CurrencyPick) {
+            return CountryPickerView(
+              onSelect: (Currency value) {},
+              changeThemeMode: changeTheme,
+            );
+          }
           if (state is CurrencyPicked) {
             return HomeView(changeTheme: changeTheme);
           }
-          return CountryPickerView(
-            onSelect: (Currency value) {},
-            changeThemeMode: changeTheme,
-          );
+          return HeroPage();
         },
       ),
     );

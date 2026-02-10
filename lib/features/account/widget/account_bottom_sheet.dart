@@ -154,8 +154,16 @@ class _AccountBottomSheetState extends State<AccountBottomSheet> {
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                    ),
                     onPressed: createNewAccount,
-                    child: const Text('Save'),
+                    child: Text(
+                      'Save',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
+                    ),
                   ),
                   SizedBox(
                     height: MediaQuery.of(context).viewInsets.bottom > 0

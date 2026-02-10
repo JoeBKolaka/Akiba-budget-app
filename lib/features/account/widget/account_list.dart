@@ -68,34 +68,40 @@ class _AccountListState extends State<AccountList> {
           final account = _accounts[index];
 
           Color backgroundColor;
-          IconData iconData;
+          String emoji;
 
           switch (account.account_type) {
             case 'normal':
-              backgroundColor = Colors.grey;
-              iconData = Icons.account_balance_wallet;
+              backgroundColor = Colors.green;
+              emoji = '💰';
               break;
             case 'savings':
               backgroundColor = Colors.green;
-              iconData = Icons.savings;
+              emoji = '🏦';
               break;
             case 'loan':
               backgroundColor = Colors.red;
-              iconData = Icons.money_off;
+              emoji = '📈';
               break;
             default:
-              backgroundColor = Colors.grey;
-              iconData = Icons.account_balance_wallet;
+              backgroundColor = Colors.green;
+              emoji = '💰';
           }
 
           return ListTile(
             leading: CircleAvatar(
               backgroundColor: backgroundColor,
-              child: Center(child: Icon(iconData, color: Colors.white)),
+              child: Center(
+                child: Text(emoji, style: const TextStyle(fontSize: 20)),
+              ),
             ),
             title: Text(account.account_name),
             trailing: Text(
-              '$_currencySymbol${account.ammount.toStringAsFixed(_decimalPlaces)}',
+              '$_currencySymbol${account.ammount.abs().toStringAsFixed(_decimalPlaces)}',
+              style: TextStyle(
+                color: account.ammount >= 0 ? Colors.green : Colors.red,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             onTap: () {
               widget.onAccountSelected?.call(account.id, account.account_name);

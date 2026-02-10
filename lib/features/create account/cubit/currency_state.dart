@@ -9,7 +9,9 @@ final class CurrencyPicked extends CurrencyState {
   CurrencyPicked(this.user);
 }
 
-final class CurrencyPick extends CurrencyState {}
+final class CurrencyPick extends CurrencyState {
+  
+}
 
 final class CurrencyError extends CurrencyState {
   final String error;

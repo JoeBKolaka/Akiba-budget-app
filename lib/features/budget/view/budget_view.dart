@@ -29,41 +29,54 @@ class _BudgetViewState extends State<BudgetView> {
         automaticallyImplyLeading: false,
         title: const Text('Budget'),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: PageView(
-              controller: _pageController,
-              physics: const PageScrollPhysics(parent: BouncingScrollPhysics()),
-              onPageChanged: (index) {
-                setState(() {
-                  _currentPage = index;
-                });
-              },
-              children: const [BudgetPie(), BudgetLeftPie()],
-            ),
-          ),
-          const SizedBox(height: 12,),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              for (int i = 0; i < 2; i++)
-                Container(
-                  width: 8,
-                  height: 8,
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _currentPage == i
-                        ? Theme.of(context).colorScheme.primary
-                        : Colors.grey,
+      body: SingleChildScrollView(
+        //physics: const BouncingScrollPhysics(),
+        child: Column(
+          children: [
+            
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.5,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: PageView(
+                      controller: _pageController,
+                      physics: const PageScrollPhysics(
+                        parent: BouncingScrollPhysics(),
+                      ),
+                      onPageChanged: (index) {
+                        setState(() {
+                          _currentPage = index;
+                        });
+                      },
+                      children: const [BudgetPie(), BudgetLeftPie()],
+                    ),
                   ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          const Expanded(child: BudgetCard()),
-        ],
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      for (int i = 0; i < 2; i++)
+                        Container(
+                          width: 8,
+                          height: 8,
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _currentPage == i
+                                ? Theme.of(context).colorScheme.primary
+                                : Colors.grey,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
+            const BudgetCard(),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'add_budget_fab',

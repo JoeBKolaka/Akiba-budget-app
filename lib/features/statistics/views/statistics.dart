@@ -26,11 +26,11 @@ class _StatisticsState extends State<Statistics> {
         automaticallyImplyLeading: false,
         title: const Text('Statistics'),
       ),
-      body: Column(
-        children: [
-          SizedBox(
-            height: MediaQuery.of(context).size.height * 0.45,
-            child: BarGraph(
+      body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          children: [
+            BarGraph(
               selectedDate: selectedDate,
               onViewTypeChanged: (viewType) {
                 setState(() {
@@ -43,15 +43,13 @@ class _StatisticsState extends State<Statistics> {
                 });
               },
             ),
-          ),
-          Expanded(
-            child: StatisticsList(
+            StatisticsList(
               selectedDate: selectedDate,
               viewType: currentViewType,
               offsets: currentOffsets,
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

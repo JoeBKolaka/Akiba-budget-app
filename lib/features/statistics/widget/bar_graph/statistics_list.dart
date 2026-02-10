@@ -162,18 +162,6 @@ class _StatisticsListState extends State<StatisticsList> {
     return DateTime(date.year, date.month, date.day - daysToSubtract);
   }
 
-  Map<String, int> _getTransactionCountsByCategory() {
-    final counts = <String, int>{};
-    final filteredTransactions = _filterTransactions();
-
-    for (var transaction in filteredTransactions) {
-      final categoryId = transaction.category_id;
-      counts[categoryId] = (counts[categoryId] ?? 0) + 1;
-    }
-
-    return counts;
-  }
-
   Map<String, double> _getTransactionAmountsByCategory() {
     final amounts = <String, double>{};
     final filteredTransactions = _filterTransactions();
@@ -181,10 +169,38 @@ class _StatisticsListState extends State<StatisticsList> {
     for (var transaction in filteredTransactions) {
       final categoryId = transaction.category_id;
       final currentAmount = amounts[categoryId] ?? 0.0;
-      amounts[categoryId] = currentAmount + transaction.transaction_amount;
+
+      // Calculate cashflow: income adds, expense subtracts
+      if (transaction.transaction_type == 'income') {
+        amounts[categoryId] = currentAmount + transaction.transaction_amount;
+      } else if (transaction.transaction_type == 'expense') {
+        amounts[categoryId] = currentAmount - transaction.transaction_amount;
+      }
     }
 
     return amounts;
+  }
+
+  // Get categories sorted by absolute cashflow (highest to lowest)
+  List<MapEntry<String, double>> _getSortedCategoriesByCashflow() {
+    final categoryAmounts = _getTransactionAmountsByCategory();
+
+    // Sort by absolute value of cashflow (descending), then by cashflow value (positive first)
+    final sortedEntries = categoryAmounts.entries.toList()
+      ..sort((a, b) {
+        final absA = a.value.abs();
+        final absB = b.value.abs();
+
+        // First sort by absolute value (highest to lowest)
+        if (absB.compareTo(absA) != 0) {
+          return absB.compareTo(absA);
+        }
+
+        // If absolute values are equal, put positive values first
+        return b.value.compareTo(a.value);
+      });
+
+    return sortedEntries;
   }
 
   @override
@@ -228,83 +244,75 @@ class _StatisticsListState extends State<StatisticsList> {
   }
 
   Widget _buildContent() {
-    final categoryCounts = _getTransactionCountsByCategory();
-    final categoryAmounts = _getTransactionAmountsByCategory();
-    final filteredTransactions = _filterTransactions();
-    final totalTransactions = filteredTransactions.length;
+    final sortedCategories = _getSortedCategoriesByCashflow();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: categoryCounts.isEmpty
-              ? const Center(child: Text('No transactions for this period'))
-              : ListView.builder(
-                  shrinkWrap: true,
-                  physics: const ClampingScrollPhysics(),
-                  itemCount: categoryCounts.length,
-                  itemBuilder: (context, index) {
-                    final categoryId = categoryCounts.keys.elementAt(index);
-                    final count = categoryCounts[categoryId]!;
-                    final amount = categoryAmounts[categoryId] ?? 0.0;
-                    final category = _getCategoryForTransaction(categoryId);
+    // Calculate estimated height needed (72px per list item + padding)
+    final estimatedListHeight = sortedCategories.length * 72.0 + 16;
 
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: category != null
-                            ? category.color
-                            : Colors.grey,
-                        child: Center(
-                          child: Text(
-                            category?.emoji ?? '💰',
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                        ),
-                      ),
-                      title: Text(
-                        category?.name ?? 'Unknown',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
-                      subtitle: Text(
-                        '$_currencySymbol${amount.abs().toStringAsFixed(_decimalPlaces)}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      trailing: Text(
-                        '$count',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
-                      onTap: () {
-                        widget.onCategorySelected?.call(
-                          categoryId,
-                          category?.name ?? 'Unknown',
-                          category?.emoji ?? '💰',
-                        );
+    return sortedCategories.isEmpty
+        ? Container(
+            height: 100,
+            alignment: Alignment.center,
+            child: const Text('No transactions for this period'),
+          )
+        : Container(
+            height: estimatedListHeight,
+            child: ListView.builder(
+              physics: const ClampingScrollPhysics(),
+              itemCount: sortedCategories.length,
+              itemBuilder: (context, index) {
+                final entry = sortedCategories[index];
+                final categoryId = entry.key;
+                final cashflow = entry.value;
+                final category = _getCategoryForTransaction(categoryId);
 
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CategoryStatistics(
-                              categoryId: categoryId,
-                              categoryName: category?.name ?? 'Unknown',
-                              categoryEmoji: category?.emoji ?? '💰',
-                            ),
-                          ),
-                        );
-                      },
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: category != null
+                        ? category.color
+                        : Colors.grey,
+                    child: Center(
+                      child: Text(
+                        category?.emoji ?? '💰',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ),
+                  title: Text(
+                    category?.name ?? 'Unknown',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  subtitle: Text(
+                    '$_currencySymbol${cashflow.abs().toStringAsFixed(_decimalPlaces)}',
+                    style: TextStyle(
+                      fontSize: 14, 
+                      color: cashflow >= 0 ? Colors.green : Colors.red,
+                    ),
+                  ),
+                  onTap: () {
+                    widget.onCategorySelected?.call(
+                      categoryId,
+                      category?.name ?? 'Unknown',
+                      category?.emoji ?? '💰',
+                    );
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CategoryStatistics(
+                          categoryId: categoryId,
+                          categoryName: category?.name ?? 'Unknown',
+                          categoryEmoji: category?.emoji ?? '💰',
+                        ),
+                      ),
                     );
                   },
-                ),
-        ),
-      ],
-    );
+                );
+              },
+            ),
+          );
   }
 }

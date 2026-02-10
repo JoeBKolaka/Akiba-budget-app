@@ -59,7 +59,7 @@ class _AccountViewState extends State<AccountView> {
 
       double totalNetWorth = 0.0;
       for (var account in accounts) {
-        if (account.account_type == 'loans') {
+        if (account.account_type?.toLowerCase().contains('loan') == true) {
           totalNetWorth -= account.ammount;
         } else {
           totalNetWorth += account.ammount;

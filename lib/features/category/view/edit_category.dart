@@ -24,8 +24,8 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
   void initState() {
     super.initState();
     categoryController = TextEditingController(text: widget.category.name);
-    selectedColor = widget.category.color ?? Colors.grey;
-    selectedEmoji = widget.category.emoji ?? "📁";
+    selectedColor = widget.category.color;
+    selectedEmoji = widget.category.emoji;
   }
 
   @override
@@ -87,6 +87,8 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
               backgroundColor: theme.colorScheme.surface,
             ),
             emojiViewConfig: EmojiViewConfig(
+              columns: 8,
+              noRecents: DefaultNoRecentsWidget,
               backgroundColor: theme.colorScheme.surface,
             ),
             categoryViewConfig: CategoryViewConfig(
@@ -96,6 +98,7 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
               backspaceColor: theme.colorScheme.primary,
             ),
             bottomActionBarConfig: BottomActionBarConfig(
+              buttonColor: theme.colorScheme.primary,
               backgroundColor: theme.colorScheme.surface,
             ),
           ),
@@ -195,14 +198,18 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
                     ),
                     const SizedBox(height: 10),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary,
+                        ),
                         onPressed: updateCategory,
                         child: Text(
-                          "Update",
+                          'Edit Category',
                           style: TextStyle(
-                            color: theme.colorScheme.onPrimary,
-                            fontSize: 18,
+                            color: Theme.of(context).colorScheme.onPrimary,
                           ),
                         ),
                       ),

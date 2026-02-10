@@ -84,6 +84,8 @@ class _AddCategoryState extends State<AddCategory> {
               backgroundColor: theme.colorScheme.surface,
             ),
             emojiViewConfig: EmojiViewConfig(
+              columns: 8,
+              noRecents: DefaultNoRecentsWidget,
               backgroundColor: theme.colorScheme.surface,
             ),
             categoryViewConfig: CategoryViewConfig(
@@ -93,6 +95,7 @@ class _AddCategoryState extends State<AddCategory> {
               backspaceColor: theme.colorScheme.primary,
             ),
             bottomActionBarConfig: BottomActionBarConfig(
+              buttonColor: theme.colorScheme.primary,
               backgroundColor: theme.colorScheme.surface,
             ),
           ),
@@ -194,14 +197,18 @@ class _AddCategoryState extends State<AddCategory> {
                       ),
                       const SizedBox(height: 10),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary,
+                          ),
                           onPressed: createNewCategory,
                           child: Text(
-                            "Create",
+                            'Add Category',
                             style: TextStyle(
-                              color: theme.colorScheme.onPrimary,
-                              fontSize: 18,
+                              color: Theme.of(context).colorScheme.onPrimary,
                             ),
                           ),
                         ),

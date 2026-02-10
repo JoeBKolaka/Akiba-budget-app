@@ -14,6 +14,12 @@ class AppTheme {
       color: Colors.white,
       //surfaceTintColor: Colors.transparent,
     ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        minimumSize: const Size(double.infinity, 50),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      ),
+    ),
   );
 
   static final ThemeData darkTheme = ThemeData(
@@ -28,6 +34,12 @@ class AppTheme {
     cardTheme: CardThemeData(
       color: Colors.black,
       //surfaceTintColor: Colors.transparent,
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        minimumSize: const Size(double.infinity, 50),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      ),
     ),
   );
 }

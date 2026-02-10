@@ -37,11 +37,11 @@ class _AccountChipState extends State<AccountChip> {
   String _getEmojiForAccountType(String accountType) {
     switch (accountType.toLowerCase()) {
       case 'savings':
-        return '💰';
-      case 'loans':
         return '🏦';
+      case 'loans':
+        return '📈';
       case 'normal':
-        return '💳';
+        return '💰';
       default:
         return '🏦';
     }
