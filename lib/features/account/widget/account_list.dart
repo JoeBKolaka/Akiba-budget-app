@@ -99,7 +99,7 @@ class _AccountListState extends State<AccountList> {
             trailing: Text(
               '$_currencySymbol${account.ammount.abs().toStringAsFixed(_decimalPlaces)}',
               style: TextStyle(
-                color: account.ammount >= 0 ? Colors.green : Colors.red,
+                color: account.account_type == 'loan' ? Colors.red : Colors.green,
                 fontWeight: FontWeight.w600,
               ),
             ),

@@ -1,5 +1,4 @@
 import 'package:akiba/features/create%20account/widgets/country_list.dart';
-import 'package:akiba/features/create%20account/widgets/search_field.dart';
 import 'package:akiba/models/currency.dart';
 import 'package:flutter/material.dart';
 
@@ -41,15 +40,18 @@ class _CountryPickerViewState extends State<CountryPickerView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Select Currency')),
+      appBar: AppBar(
+        title: Text(
+          'Select Currency',
+          style: TextStyle(color: Theme.of(context).colorScheme.primary),
+        ),
+      ),
       body: Column(
         children: [
           const SizedBox(height: 12),
-         
+
           Expanded(
-            child: CurrencyWidget(
-              changeThemeMode: widget.changeThemeMode,
-            ),
+            child: CurrencyWidget(changeThemeMode: widget.changeThemeMode),
           ),
         ],
       ),

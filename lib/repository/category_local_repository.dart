@@ -73,6 +73,7 @@ class CategoryLocalRepository {
   }
 
   Future<void> updateCategory({
+    required String id,
     required String name,
     required String emoji,
     required String hex_color,
@@ -87,8 +88,8 @@ class CategoryLocalRepository {
         'hex_color': hex_color,
         'user_id': user_id,
       },
-      where: 'name = ? AND user_id = ?',
-      whereArgs: [name, user_id],
+      where: 'id = ? AND user_id = ?',
+      whereArgs: [id, user_id],
     );
   }
 }

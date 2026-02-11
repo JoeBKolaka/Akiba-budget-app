@@ -194,7 +194,7 @@ class _BudgetCardState extends State<BudgetCard> {
         BlocListener<CategoryCubit, CategoryState>(
           listener: (context, state) {
             if (state is CategoryStateUpdate) {
-              _getCategoryForBudget;
+              _loadBudgets();
             }
           },
         ),

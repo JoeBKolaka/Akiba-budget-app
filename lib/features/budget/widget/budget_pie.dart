@@ -70,53 +70,71 @@ class _BudgetPieState extends State<BudgetPie> {
     }
   }
 
+  int _getDaysInYear(int year) {
+    return DateTime(year, 12, 31).difference(DateTime(year, 1, 1)).inDays + 1;
+  }
+
+  int _getDaysInMonth(int year, int month) {
+    return DateTime(year, month + 1, 0).day;
+  }
+
+  int _getDaysInWeek() {
+    return 7;
+  }
+
   double _getMeanForPeriod(BudgetModel budget, String period) {
     final budgetAmount = budget.budget_amount;
+    final now = DateTime.now();
+    final budgetRepetition = budget.repetition;
 
     switch (period) {
       case 'daily':
-        final budgetRepetition = budget.repetition;
         if (budgetRepetition == '0') {
           return budgetAmount;
         } else if (budgetRepetition == '1') {
-          return budgetAmount / 7;
+          return budgetAmount / _getDaysInWeek();
         } else if (budgetRepetition == '2') {
-          return budgetAmount / 30;
+          final daysInMonth = _getDaysInMonth(now.year, now.month);
+          return budgetAmount / daysInMonth;
         } else if (budgetRepetition == '3') {
-          return budgetAmount / 365;
+          final daysInYear = _getDaysInYear(now.year);
+          return budgetAmount / daysInYear;
         }
         return budgetAmount;
 
       case 'weekly':
-        final budgetRepetition = budget.repetition;
         if (budgetRepetition == '0') {
-          return budgetAmount * 7;
+          return budgetAmount * _getDaysInWeek();
         } else if (budgetRepetition == '1') {
           return budgetAmount;
         } else if (budgetRepetition == '2') {
-          return budgetAmount / 4;
+          final daysInMonth = _getDaysInMonth(now.year, now.month);
+          return (budgetAmount / daysInMonth) * _getDaysInWeek();
         } else if (budgetRepetition == '3') {
-          return budgetAmount / 52;
+          final daysInYear = _getDaysInYear(now.year);
+          return (budgetAmount / daysInYear) * _getDaysInWeek();
         }
         return budgetAmount;
 
       case 'monthly':
-        final budgetRepetition = budget.repetition;
         if (budgetRepetition == '0') {
-          return budgetAmount * 30;
+          final daysInMonth = _getDaysInMonth(now.year, now.month);
+          return budgetAmount * daysInMonth;
         } else if (budgetRepetition == '1') {
           return budgetAmount * 4;
         } else if (budgetRepetition == '2') {
           return budgetAmount;
         } else if (budgetRepetition == '3') {
-          return budgetAmount / 12;
+          final daysInYear = _getDaysInYear(now.year);
+          return (budgetAmount / daysInYear) *
+              _getDaysInMonth(now.year, now.month);
         }
         return budgetAmount;
 
       case 'yearly':
-        final budgetRepetition = budget.repetition;
         if (budgetRepetition == '0') {
-          return budgetAmount * 365;
+          final daysInYear = _getDaysInYear(now.year);
+          return budgetAmount * daysInYear;
         } else if (budgetRepetition == '1') {
           return budgetAmount * 52;
         } else if (budgetRepetition == '2') {
@@ -150,6 +168,7 @@ class _BudgetPieState extends State<BudgetPie> {
       Colors.cyan,
     ];
 
+    int sectionIndex = 0;
     for (int i = 0; i < _budgets.length; i++) {
       final budget = _budgets[i];
       final category = _getCategoryForBudget(budget.category_id);
@@ -176,11 +195,11 @@ class _BudgetPieState extends State<BudgetPie> {
 
         sections.add(
           PieChartSectionData(
-            showTitle: _touchedIndex == i,
+            showTitle: _touchedIndex == sectionIndex,
             titlePositionPercentageOffset: 3,
             value: meanAmount,
             color: sectionColor,
-            radius: _touchedIndex == i ? 18 : 15,
+            radius: _touchedIndex == sectionIndex ? 18 : 15,
             title:
                 '$_currencySymbol${_formatNumber(meanAmount)}\n$categoryEmoji',
             titleStyle: Theme.of(
@@ -188,6 +207,7 @@ class _BudgetPieState extends State<BudgetPie> {
             ).textTheme.bodySmall!.copyWith(fontWeight: FontWeight.bold),
           ),
         );
+        sectionIndex++;
       }
     }
 
@@ -224,15 +244,19 @@ class _BudgetPieState extends State<BudgetPie> {
   }
 
   String _getPeriodSubtitle(String period) {
+    final now = DateTime.now();
     switch (period) {
       case 'daily':
-        return 'Mean daily amount for each budget';
+        final daysInYear = _getDaysInYear(now.year);
+        return 'Mean daily amount ';
       case 'weekly':
-        return 'Mean weekly amount for each budget';
+        return 'Mean weekly amount ';
       case 'monthly':
-        return 'Mean monthly amount for each budget';
+        final daysInMonth = _getDaysInMonth(now.year, now.month);
+        return 'Mean monthly amount ';
       case 'yearly':
-        return 'Mean yearly amount for each budget';
+        final daysInYear = _getDaysInYear(now.year);
+        return 'Mean yearly amount ';
       default:
         return 'Budget allocation breakdown';
     }
@@ -253,7 +277,9 @@ class _BudgetPieState extends State<BudgetPie> {
         ),
         BlocListener<CategoryCubit, CategoryState>(
           listener: (context, state) {
-            _loadBudgets();
+            if (state is CategoryStateUpdate) {
+              _loadBudgets();
+            }
           },
         ),
         BlocListener<TransactionCubit, TransactionState>(

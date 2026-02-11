@@ -15,7 +15,7 @@ class HeroPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 300),
-            Text('💰', style: TextStyle(fontSize: 80)),
+            Image.asset('assets/images/Pasted_image.png'),
             Spacer(),
 
             Text(

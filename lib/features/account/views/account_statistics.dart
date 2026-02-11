@@ -36,7 +36,12 @@ class _AccountStatisticsState extends State<AccountStatistics> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.accountName)),
+      appBar: AppBar(
+        title: Text(
+          widget.accountName,
+          style: TextStyle(color: Theme.of(context).colorScheme.primary),
+        ),
+      ),
       body: SingleChildScrollView(
         //physics: const BouncingScrollPhysics(),
         child: BlocBuilder<TransactionCubit, TransactionState>(

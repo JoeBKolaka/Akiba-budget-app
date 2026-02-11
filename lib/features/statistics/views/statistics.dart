@@ -24,7 +24,10 @@ class _StatisticsState extends State<Statistics> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text('Statistics'),
+        title: Text(
+          'Statistics',
+          style: TextStyle(color: Theme.of(context).colorScheme.primary),
+        ),
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),

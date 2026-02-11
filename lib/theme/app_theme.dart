@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
   static final ThemeData lightTheme = ThemeData(
-    colorSchemeSeed: Color.fromRGBO(18, 97, 26, 1),
-    appBarTheme: AppBarThemeData(backgroundColor: Colors.white),
+    colorSchemeSeed: Color(0xFF00B9A6),
+    appBarTheme: AppBarThemeData(
+      backgroundColor: Colors.white,
+      foregroundColor: Colors.white,
+    ),
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor: Colors.white,
     ),
@@ -23,11 +26,7 @@ class AppTheme {
   );
 
   static final ThemeData darkTheme = ThemeData(
-    colorSchemeSeed: Color.fromRGBO(18, 97, 26, 1),
-    appBarTheme: AppBarThemeData(backgroundColor: Colors.black),
-    bottomNavigationBarTheme: BottomNavigationBarThemeData(
-      backgroundColor: Colors.black,
-    ),
+    colorSchemeSeed: Color(0xFF00C9B6),
     scaffoldBackgroundColor: Colors.black,
     useMaterial3: true,
     brightness: Brightness.dark,

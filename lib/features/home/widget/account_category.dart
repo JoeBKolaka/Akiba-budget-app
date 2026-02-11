@@ -40,7 +40,7 @@ class _AccountCategoryState extends State<AccountCategory> {
   Widget build(BuildContext context) {
     return BlocListener<CategoryCubit, CategoryState>(
       listener: (context, state) {
-        if (state is CategoryStateAdd) {
+        if (state is CategoryStateAdd || state is CategoryStateUpdate) {
           _loadCategories();
         }
       },

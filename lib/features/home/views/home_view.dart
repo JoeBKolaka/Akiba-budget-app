@@ -36,14 +36,19 @@ class _HomeViewState extends State<HomeView> {
       appBar: _page == 0
           ? AppBar(
               automaticallyImplyLeading: false,
+              title: Text(
+                'Akiba',
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
+              ),
               actions: [
                 IconButton(
+                  color: Theme.of(context).colorScheme.primary,
                   onPressed: () {
                     Navigator.push(context, CategoryView.route());
                   },
                   icon: Icon(Icons.category_rounded),
                 ),
-                ThemeButton(changeThemeMode: widget.changeTheme),
+                //ThemeButton(changeThemeMode: widget.changeTheme),
               ],
             )
           : null,

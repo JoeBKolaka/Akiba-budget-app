@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import 'package:akiba/features/home/cubit/transaction_cubit.dart';
-import 'package:akiba/theme/pallete.dart';
 
 class BarGraph extends StatefulWidget {
   final DateTime selectedDate;
@@ -394,9 +393,9 @@ class _BarGraphState extends State<BarGraph> {
               ),
             ],
           ),
-          // REMOVE Expanded and add SizedBox with fixed height
+          
           SizedBox(
-            height: 200, // Fixed height for the chart
+            height: 200,
             child: Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
               child: BarChart(

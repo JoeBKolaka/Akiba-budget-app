@@ -1,7 +1,8 @@
 import 'package:akiba/features/budget/view/add_budget.dart';
 import 'package:akiba/features/budget/widget/budget_card.dart';
-import 'package:akiba/features/budget/widget/budget_left.dart';
+
 import 'package:akiba/features/budget/widget/budget_pie.dart';
+import 'package:akiba/features/budget/widget/budget_spent.dart';
 
 import 'package:flutter/material.dart';
 
@@ -27,29 +28,31 @@ class _BudgetViewState extends State<BudgetView> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text('Budget'),
+        title: Text(
+          'Budget',
+          style: TextStyle(color: Theme.of(context).colorScheme.primary),
+        ),
       ),
       body: SingleChildScrollView(
         //physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
-            
             SizedBox(
-              height: MediaQuery.of(context).size.height * 0.5,
+              height: MediaQuery.of(context).size.height * 0.6,
               child: Column(
                 children: [
                   Expanded(
                     child: PageView(
                       controller: _pageController,
-                      physics: const PageScrollPhysics(
-                        parent: BouncingScrollPhysics(),
-                      ),
+                      //physics: const PageScrollPhysics(
+                      //  parent: BouncingScrollPhysics(),
+                      //),
                       onPageChanged: (index) {
                         setState(() {
                           _currentPage = index;
                         });
                       },
-                      children: const [BudgetPie(), BudgetLeftPie()],
+                      children: const [BudgetPie(), BudgetSpent()],
                     ),
                   ),
                   const SizedBox(height: 12),

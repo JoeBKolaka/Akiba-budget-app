@@ -36,6 +36,7 @@ class _CategorPieState extends State<CategorPie> {
   late int _yearOffset;
   String _currencySymbol = '\$';
   int _decimalPlaces = 0;
+  int? _touchedIndex;
 
   @override
   void initState() {
@@ -71,6 +72,7 @@ class _CategorPieState extends State<CategorPie> {
         _weekOffset = widget.weekOffset;
         _monthOffset = widget.monthOffset;
         _yearOffset = widget.yearOffset;
+        _touchedIndex = null;
       });
     }
   }
@@ -179,12 +181,16 @@ class _CategorPieState extends State<CategorPie> {
     };
   }
 
+  String _formatNumber(double value) {
+    return NumberFormat('#,##0.${'0' * _decimalPlaces}').format(value);
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TransactionCubit, TransactionState>(
       builder: (context, state) {
         if (state is TransactionStateLoading) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         }
 
         if (state is TransactionStateError) {
@@ -230,6 +236,7 @@ class _CategorPieState extends State<CategorPie> {
                             _weekOffset = 0;
                             _monthOffset = 0;
                             _yearOffset = 0;
+                            _touchedIndex = null;
                           });
                           _notifyViewChange();
                         },
@@ -262,14 +269,27 @@ class _CategorPieState extends State<CategorPie> {
                       if (transactionCount > 0)
                         PieChart(
                           PieChartData(
+                            pieTouchData: PieTouchData(
+                              touchCallback:
+                                  (FlTouchEvent event, pieTouchResponse) {
+                                    setState(() {
+                                      if (event is FlTapUpEvent ||
+                                          event is FlPanStartEvent) {
+                                        _touchedIndex = pieTouchResponse
+                                            ?.touchedSection
+                                            ?.touchedSectionIndex;
+                                      }
+                                    });
+                                  },
+                            ),
                             sections: [
                               if (totalIncome > 0)
                                 PieChartSectionData(
                                   value: totalIncome,
                                   color: Colors.green,
-                                  radius: 12,
-                                  title: totalAmount > 0
-                                      ? '${(totalIncome / totalAmount * 100).toStringAsFixed(1)}%'
+                                  radius: _touchedIndex == 0 ? 18 : 12,
+                                  title: _touchedIndex == 0
+                                      ? '$_currencySymbol${_formatNumber(totalIncome)}'
                                       : '',
                                   titleStyle: const TextStyle(
                                     fontSize: 12,
@@ -281,9 +301,13 @@ class _CategorPieState extends State<CategorPie> {
                                 PieChartSectionData(
                                   value: totalExpense,
                                   color: Colors.red,
-                                  radius: 12,
-                                  title: totalAmount > 0
-                                      ? '${(totalExpense / totalAmount * 100).toStringAsFixed(1)}%'
+                                  radius:
+                                      _touchedIndex == (totalIncome > 0 ? 1 : 0)
+                                      ? 18
+                                      : 12,
+                                  title:
+                                      _touchedIndex == (totalIncome > 0 ? 1 : 0)
+                                      ? '$_currencySymbol${_formatNumber(totalExpense)}'
                                       : '',
                                   titleStyle: const TextStyle(
                                     fontSize: 12,
@@ -301,7 +325,7 @@ class _CategorPieState extends State<CategorPie> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                '$_currencySymbol${NumberFormat('#,##0.${'0' * _decimalPlaces}').format(netCashflow.abs())}',
+                                '$_currencySymbol${_formatNumber(netCashflow.abs())}',
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
@@ -309,22 +333,6 @@ class _CategorPieState extends State<CategorPie> {
                                       ? Colors.green
                                       : Colors.red,
                                 ),
-                              ),
-                              Text(
-                                netCashflow >= 0 ? '(+)' : '(-)',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: netCashflow >= 0
-                                      ? Colors.green
-                                      : Colors.red,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                transactionCount == 0
-                                    ? 'No transactions'
-                                    : '${transactionCount.toInt()} transactions',
-                                style: const TextStyle(fontSize: 12),
                               ),
                             ],
                           ),
@@ -350,6 +358,7 @@ class _CategorPieState extends State<CategorPie> {
                                   if (_selectedView == 'monthly')
                                     _monthOffset--;
                                   if (_selectedView == 'yearly') _yearOffset--;
+                                  _touchedIndex = null;
                                 });
                                 _notifyViewChange();
                               },
@@ -365,6 +374,7 @@ class _CategorPieState extends State<CategorPie> {
                                   if (_selectedView == 'monthly')
                                     _monthOffset++;
                                   if (_selectedView == 'yearly') _yearOffset++;
+                                  _touchedIndex = null;
                                 });
                                 _notifyViewChange();
                               },

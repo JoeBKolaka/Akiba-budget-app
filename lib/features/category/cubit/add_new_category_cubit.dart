@@ -37,7 +37,9 @@ class CategoryCubit extends Cubit<CategoryState> {
     }
   }
 
+  
   Future<void> updateCategory({
+    required String id,
     required String name,
     required String emoji,
     required Color color,
@@ -45,6 +47,7 @@ class CategoryCubit extends Cubit<CategoryState> {
   }) async {
     try {
       await categoryLocalRepository.updateCategory(
+        id: id,
         name: name,
         emoji: emoji,
         hex_color: rgbToHex(color),

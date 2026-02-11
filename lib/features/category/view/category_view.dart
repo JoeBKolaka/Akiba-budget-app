@@ -16,7 +16,11 @@ class _CategoryViewState extends State<CategoryView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Categories'),
+        automaticallyImplyLeading: false,
+        title: Text(
+          'Categories',
+          style: TextStyle(color: Theme.of(context).colorScheme.primary),
+        ),
         actions: [
           TextButton(
             onPressed: () {

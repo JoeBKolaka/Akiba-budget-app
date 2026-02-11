@@ -51,6 +51,7 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
 
     CurrencyPicked user = context.read<CurrencyCubit>().state as CurrencyPicked;
     await context.read<CategoryCubit>().updateCategory(
+      id: widget.category.id,
       name: categoryController.text.trim(),
       emoji: selectedEmoji,
       color: selectedColor,

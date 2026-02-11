@@ -10,20 +10,20 @@ import 'package:intl/intl.dart';
 import '../../../../theme/pallete.dart';
 import '../../create account/cubit/currency_cubit.dart';
 
-class BudgetLeftPie extends StatefulWidget {
-  const BudgetLeftPie({super.key});
+class BudgetSpent extends StatefulWidget {
+  const BudgetSpent({super.key});
 
   @override
-  State<BudgetLeftPie> createState() => _BudgetLeftPieState();
+  State<BudgetSpent> createState() => _BudgetSpentState();
 }
 
-class _BudgetLeftPieState extends State<BudgetLeftPie> {
+class _BudgetSpentState extends State<BudgetSpent> {
   String _selectedView = 'daily';
   late List<BudgetModel> _budgets = [];
   late List<CategoryModel> _categories = [];
   String _currencySymbol = '\$';
   int _decimalPlaces = 0;
-  Map<String, Map<String, double>> _spendingData = {};
+  Map<String, double> _categoryMeanSpent = {};
   int? _touchedIndex;
 
   @override
@@ -43,21 +43,77 @@ class _BudgetLeftPieState extends State<BudgetLeftPie> {
         .categoryLocalRepository
         .getCategories();
 
-    final spendingData = <String, Map<String, double>>{};
-    for (var budget in budgets) {
-      final spending = await context.read<BudgetCubit>().getBudgetSpending(
-        budget.category_id,
-      );
-      spendingData[budget.id] = spending;
-    }
-
     if (mounted) {
       setState(() {
         _budgets = budgets;
         _categories = categories;
-        _spendingData = spendingData;
         _currencySymbol = user.user.symbol;
         _decimalPlaces = user.user.decimal_digits;
+      });
+    }
+
+    _calculateMeanSpent();
+  }
+
+  int _getDaysInYear(int year) {
+    return DateTime(year, 12, 31).difference(DateTime(year, 1, 1)).inDays + 1;
+  }
+
+  int _getDaysInMonth(int year, int month) {
+    return DateTime(year, month + 1, 0).day;
+  }
+
+  Future<void> _calculateMeanSpent() async {
+    final Map<String, double> meanSpent = {};
+    final now = DateTime.now();
+    final startOfYear = DateTime(now.year, 1, 1);
+    final daysInYear = _getDaysInYear(now.year);
+    final daysInMonth = _getDaysInMonth(now.year, now.month);
+
+    for (var budget in _budgets) {
+      final transactions = await context
+          .read<TransactionCubit>()
+          .getTransactionsByCategoryAndDateRange(
+            budget.category_id,
+            startDate: startOfYear,
+            endDate: now,
+          );
+
+      if (transactions.isEmpty) {
+        meanSpent[budget.category_id] = 0.0;
+        continue;
+      }
+
+      double totalSpent = 0.0;
+      for (var transaction in transactions) {
+        if (transaction.transaction_type == 'expense') {
+          totalSpent += transaction.transaction_amount;
+        }
+      }
+
+      double result = 0.0;
+
+      switch (_selectedView) {
+        case 'daily':
+          result = totalSpent / daysInYear;
+          break;
+        case 'weekly':
+          result = (totalSpent / daysInYear) * 7;
+          break;
+        case 'monthly':
+          result = totalSpent / daysInMonth;
+          break;
+        case 'yearly':
+          result = totalSpent;
+          break;
+      }
+
+      meanSpent[budget.category_id] = result;
+    }
+
+    if (mounted) {
+      setState(() {
+        _categoryMeanSpent = meanSpent;
       });
     }
   }
@@ -70,105 +126,19 @@ class _BudgetLeftPieState extends State<BudgetLeftPie> {
     }
   }
 
-  double _getSpentAmount(BudgetModel budget, String period) {
-    final spending = _spendingData[budget.id];
-    if (spending != null) {
-      return spending[period] ?? 0.0;
-    }
-    return 0.0;
-  }
-
-  double _getMeanForPeriod(BudgetModel budget, String period) {
-    final budgetAmount = budget.budget_amount;
-
-    switch (period) {
-      case 'daily':
-        final budgetRepetition = budget.repetition;
-        if (budgetRepetition == '0') {
-          return budgetAmount;
-        } else if (budgetRepetition == '1') {
-          return budgetAmount / 7;
-        } else if (budgetRepetition == '2') {
-          return budgetAmount / 30;
-        } else if (budgetRepetition == '3') {
-          return budgetAmount / 365;
-        }
-        return budgetAmount;
-
-      case 'weekly':
-        final budgetRepetition = budget.repetition;
-        if (budgetRepetition == '0') {
-          return budgetAmount * 7;
-        } else if (budgetRepetition == '1') {
-          return budgetAmount;
-        } else if (budgetRepetition == '2') {
-          return budgetAmount / 4;
-        } else if (budgetRepetition == '3') {
-          return budgetAmount / 52;
-        }
-        return budgetAmount;
-
-      case 'monthly':
-        final budgetRepetition = budget.repetition;
-        if (budgetRepetition == '0') {
-          return budgetAmount * 30;
-        } else if (budgetRepetition == '1') {
-          return budgetAmount * 4;
-        } else if (budgetRepetition == '2') {
-          return budgetAmount;
-        } else if (budgetRepetition == '3') {
-          return budgetAmount / 12;
-        }
-        return budgetAmount;
-
-      case 'yearly':
-        final budgetRepetition = budget.repetition;
-        if (budgetRepetition == '0') {
-          return budgetAmount * 365;
-        } else if (budgetRepetition == '1') {
-          return budgetAmount * 52;
-        } else if (budgetRepetition == '2') {
-          return budgetAmount * 12;
-        } else if (budgetRepetition == '3') {
-          return budgetAmount;
-        }
-        return budgetAmount;
-
-      default:
-        return budgetAmount;
-    }
-  }
-
-  double _getLeftAmount(BudgetModel budget, String period) {
-    final meanAmount = _getMeanForPeriod(budget, period);
-    final spentAmount = _getSpentAmount(budget, _getPeriodKey());
-    return meanAmount - spentAmount;
-  }
-
-  String _getPeriodKey() {
-    switch (_selectedView) {
-      case 'daily':
-        return 'today';
-      case 'weekly':
-        return 'week';
-      case 'monthly':
-        return 'month';
-      case 'yearly':
-        return 'year';
-      default:
-        return 'month';
-    }
+  double _getMeanSpentAmount(String categoryId) {
+    return _categoryMeanSpent[categoryId] ?? 0.0;
   }
 
   String _formatNumber(double value) {
-    return NumberFormat('#,##0.${'0' * _decimalPlaces}').format(value.abs());
+    return NumberFormat('#,##0.${'0' * _decimalPlaces}').format(value);
   }
 
   List<PieChartSectionData> _getPieSections() {
     final sections = <PieChartSectionData>[];
     final defaultColors = [
-      Colors.blue,
       Colors.green,
+      Colors.blue,
       Colors.orange,
       Colors.purple,
       Colors.red,
@@ -179,46 +149,45 @@ class _BudgetLeftPieState extends State<BudgetLeftPie> {
       Colors.cyan,
     ];
 
+    int sectionIndex = 0;
     for (int i = 0; i < _budgets.length; i++) {
       final budget = _budgets[i];
       final category = _getCategoryForBudget(budget.category_id);
-      final leftAmount = _getLeftAmount(budget, _selectedView);
-      final isNegative = leftAmount < 0;
 
-      if (leftAmount != 0) {
+      final meanSpent = _getMeanSpentAmount(budget.category_id);
+
+      if (meanSpent > 0) {
         Color sectionColor;
-        if (isNegative) {
-          sectionColor = Colors.red;
-        } else if (category != null && category.color != null) {
-          sectionColor = category.color!;
+        if (category != null) {
+          sectionColor = category.color;
         } else {
           sectionColor = defaultColors[i % defaultColors.length];
         }
 
         String categoryEmoji = 'Cat';
         if (category != null &&
-            category.emoji != null &&
-            category.emoji!.isNotEmpty) {
-          categoryEmoji = category.emoji!.substring(
+            category.emoji.isNotEmpty) {
+          categoryEmoji = category.emoji.substring(
             0,
-            category.emoji!.length > 4 ? 4 : category.emoji!.length,
+            category.emoji.length > 4 ? 4 : category.emoji.length,
           );
         }
 
         sections.add(
           PieChartSectionData(
-            showTitle: _touchedIndex == i,
+            showTitle: _touchedIndex == sectionIndex,
             titlePositionPercentageOffset: 3,
-            value: leftAmount.abs(),
+            value: meanSpent,
             color: sectionColor,
-            radius: _touchedIndex == i ? 18 : 15,
+            radius: _touchedIndex == sectionIndex ? 18 : 15,
             title:
-                '$_currencySymbol${_formatNumber(leftAmount)}\n$categoryEmoji',
+                '$_currencySymbol${_formatNumber(meanSpent)}\n$categoryEmoji',
             titleStyle: Theme.of(
               context,
             ).textTheme.bodySmall!.copyWith(fontWeight: FontWeight.bold),
           ),
         );
+        sectionIndex++;
       }
     }
 
@@ -228,6 +197,7 @@ class _BudgetLeftPieState extends State<BudgetLeftPie> {
           value: 1,
           color: Pallete.greyColor,
           radius: 15,
+          title: 'No\nSpending',
           titleStyle: Theme.of(
             context,
           ).textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.bold),
@@ -241,30 +211,33 @@ class _BudgetLeftPieState extends State<BudgetLeftPie> {
   String _getPeriodTitle(String period) {
     switch (period) {
       case 'daily':
-        return 'Daily Budget Status';
+        return 'Daily Mean Spent';
       case 'weekly':
-        return 'Weekly Budget Status';
+        return 'Weekly Mean Spent';
       case 'monthly':
-        return 'Monthly Budget Status';
+        return 'Monthly Mean Spent';
       case 'yearly':
-        return 'Yearly Budget Status';
+        return 'Yearly Mean Spent';
       default:
-        return 'Budget Status';
+        return 'Budget Spent';
     }
   }
 
   String _getPeriodSubtitle(String period) {
+    final now = DateTime.now();
     switch (period) {
       case 'daily':
-        return 'Green: Left, Red: Overspent';
+        final daysInYear = _getDaysInYear(now.year);
+        return 'Average per day ';
       case 'weekly':
-        return 'Green: Left, Red: Overspent';
+        return 'Average per week ';
       case 'monthly':
-        return 'Green: Left, Red: Overspent';
+        final daysInMonth = _getDaysInMonth(now.year, now.month);
+        return 'Average per month ';
       case 'yearly':
-        return 'Green: Left, Red: Overspent';
+        return 'Total spent this year';
       default:
-        return 'Green: Left, Red: Overspent';
+        return 'Mean spent breakdown';
     }
   }
 
@@ -281,13 +254,15 @@ class _BudgetLeftPieState extends State<BudgetLeftPie> {
         ),
         BlocListener<CategoryCubit, CategoryState>(
           listener: (context, state) {
-            _loadBudgets();
+            if (state is CategoryStateUpdate) {
+              _loadBudgets();
+            }
           },
         ),
         BlocListener<TransactionCubit, TransactionState>(
           listener: (context, state) {
             if (state is TransactionStateLoaded) {
-              _loadBudgets();
+              _calculateMeanSpent();
             }
           },
         ),
@@ -324,6 +299,7 @@ class _BudgetLeftPieState extends State<BudgetLeftPie> {
                       setState(() {
                         _selectedView = value;
                       });
+                      _calculateMeanSpent();
                     },
                     itemBuilder: (context) => [
                       const PopupMenuItem(value: 'daily', child: Text('Daily')),
@@ -374,37 +350,23 @@ class _BudgetLeftPieState extends State<BudgetLeftPie> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            _getTotalLeftAmount() >= 0
-                                ? 'Total Left'
-                                : 'Total Overspent',
+                            'Total Mean',
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                           Text(
-                            '$_currencySymbol${_formatNumber(_getTotalLeftAmount())}',
+                            '$_currencySymbol${_formatNumber(_getTotalMeanSpent())}',
                             style: Theme.of(context).textTheme.titleLarge!
-                                .copyWith(
-                                  color: _getTotalLeftAmount() >= 0
-                                      ? Colors.green
-                                      : Colors.red,
-                                ),
+                                .copyWith(color: Colors.green),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             _selectedView == 'daily'
-                                ? _getTotalLeftAmount() >= 0
-                                      ? 'left today'
-                                      : 'overspent today'
+                                ? 'per day'
                                 : _selectedView == 'weekly'
-                                ? _getTotalLeftAmount() >= 0
-                                      ? 'left this week'
-                                      : 'overspent this week'
+                                ? 'per week'
                                 : _selectedView == 'monthly'
-                                ? _getTotalLeftAmount() >= 0
-                                      ? 'left this month'
-                                      : 'overspent this month'
-                                : _getTotalLeftAmount() >= 0
-                                ? 'left this year'
-                                : 'overspent this year',
+                                ? 'per month'
+                                : 'this year',
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
@@ -420,10 +382,10 @@ class _BudgetLeftPieState extends State<BudgetLeftPie> {
     );
   }
 
-  double _getTotalLeftAmount() {
+  double _getTotalMeanSpent() {
     double total = 0;
     for (var budget in _budgets) {
-      total += _getLeftAmount(budget, _selectedView);
+      total += _getMeanSpentAmount(budget.category_id);
     }
     return total;
   }

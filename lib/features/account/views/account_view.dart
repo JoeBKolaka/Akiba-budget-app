@@ -1,3 +1,5 @@
+// ignore_for_file: unused_field
+
 import 'package:akiba/features/account/widget/account_bottom_sheet.dart';
 import 'package:akiba/features/account/widget/account_list.dart';
 import 'package:akiba/features/home/cubit/transaction_cubit.dart';
@@ -59,7 +61,7 @@ class _AccountViewState extends State<AccountView> {
 
       double totalNetWorth = 0.0;
       for (var account in accounts) {
-        if (account.account_type?.toLowerCase().contains('loan') == true) {
+        if (account.account_type.toLowerCase().contains('loan') == true) {
           totalNetWorth -= account.ammount;
         } else {
           totalNetWorth += account.ammount;
@@ -126,7 +128,10 @@ class _AccountViewState extends State<AccountView> {
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: const Text('Accounts'),
+          title: Text(
+            'Accounts',
+            style: TextStyle(color: Theme.of(context).colorScheme.primary),
+          ),
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 16.0),
